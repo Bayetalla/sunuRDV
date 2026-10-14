@@ -1,0 +1,6 @@
+{
+  "name": "SunuRDV - SaaS Rendez-vous Sénégal",
+  "description": "Plateforme SaaS de prise de rendez-vous pour cliniques et professionnels au Sénégal (Wave, Orange Money, OTP +221, WhatsApp/SMS, multi-tenant).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
