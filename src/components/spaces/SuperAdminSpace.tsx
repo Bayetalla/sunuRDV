@@ -62,10 +62,10 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className={`flex items-center p-1 rounded-xl border ${subBg} text-xs`}>
+        <div className={`flex items-center p-1.5 rounded-xl border ${subBg} text-xs overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0`}>
           <button
             onClick={() => setActiveTab('tenants')}
-            className={`px-3.5 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'tenants' ? 'bg-purple-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
@@ -73,7 +73,7 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('subscriptions')}
-            className={`px-3.5 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'subscriptions' ? 'bg-purple-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
@@ -81,7 +81,7 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('infrastructure')}
-            className={`px-3.5 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'infrastructure' ? 'bg-purple-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
@@ -120,7 +120,7 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
       {/* Content depending on Tab */}
       {activeTab === 'tenants' && (
         <div className={`p-6 rounded-2xl border ${cardBg} space-y-4`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h2 className={`text-base font-bold ${textPrimary}`}>Tous les locataires multi-tenants actifs</h2>
             <button 
               onClick={() => {
@@ -130,7 +130,7 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
                   message: 'Formulaire de création de nouveau tenant Laravel.'
                 });
               }}
-              className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-xs"
+              className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-xs self-start sm:self-auto"
             >
               + Onboarder nouvelle clinique
             </button>
@@ -138,22 +138,22 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
 
           <div className={`divide-y ${theme.tableDivider}`}>
             {tenants.map((t) => (
-              <div key={t.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className={`text-2xl p-2.5 rounded-xl border ${subBg}`}>{t.logo}</span>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className={`text-sm font-bold ${textPrimary}`}>{t.name}</h4>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${theme.badgeSuccess}`}>
+              <div key={t.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className={`text-2xl p-2.5 rounded-xl border shrink-0 ${subBg}`}>{t.logo}</span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <h4 className={`text-sm font-bold truncate ${textPrimary}`}>{t.name}</h4>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border shrink-0 ${theme.badgeSuccess}`}>
                         /e/{t.slug}
                       </span>
                     </div>
-                    <p className={`text-xs ${textSecondary}`}>{t.address}, {t.city} • {t.phone}</p>
+                    <p className={`text-xs truncate ${textSecondary}`}>{t.address}, {t.city} • {t.phone}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 justify-end">
-                  <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">Plan Pro (50 000 FCFA/m)</span>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-between sm:justify-end w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-700/30">
+                  <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">50 000 FCFA/m</span>
                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${theme.badgeSuccess}`}>
                     ✓ À jour
                   </span>

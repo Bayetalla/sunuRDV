@@ -124,3 +124,32 @@ export interface Holiday {
   type: 'religious_muslim' | 'religious_christian' | 'civil';
   isOpen: boolean;
 }
+
+export type MessageChannel = 'sms' | 'whatsapp';
+
+export type MessageTriggerType =
+  | 'confirmation'
+  | 'reminder_24h'
+  | 'reminder_2h'
+  | 'cancellation'
+  | 'followup';
+
+export interface MessageTemplate {
+  id: string;
+  tenantId: string;
+  channel: MessageChannel;
+  trigger: MessageTriggerType;
+  title: string;
+  description: string;
+  bodyFr: string;
+  bodyWolof?: string;
+  languageMode: 'fr' | 'wo' | 'bilingual';
+  isActive: boolean;
+  sendTimingOffsetMinutes: number;
+  includeTicketLink: boolean;
+  includeCancelLink: boolean;
+  includeGpsLink?: boolean;
+  includeWaveDepositLink?: boolean;
+  updatedAt: string;
+}
+

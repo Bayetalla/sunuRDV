@@ -78,10 +78,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {/* Floating fluid Toast container */}
+      {/* Floating fluid Toast container positioned safely above mobile navigation */}
       <div 
         aria-live="polite"
-        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none px-4 sm:px-0"
+        className="fixed bottom-20 sm:bottom-5 left-3 right-3 sm:left-auto sm:right-5 z-50 flex flex-col gap-2.5 max-w-full sm:max-w-md pointer-events-none"
       >
         {toasts.map((toast) => (
           <div

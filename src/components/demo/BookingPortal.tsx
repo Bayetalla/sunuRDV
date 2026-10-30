@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Tenant, Practitioner, MedicalService, Appointment, PaymentMethod } from '../../types';
 import { 
   Calendar, 
@@ -16,7 +16,14 @@ import {
   QrCode,
   Smartphone,
   Share2,
-  CalendarPlus
+  CalendarPlus,
+  Search,
+  Tag,
+  Printer,
+  Copy,
+  Sparkles,
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getThemeTokens } from '../../utils/themeTokens';
@@ -38,7 +45,8 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
 }) => {
   const { showToast } = useToast();
   const theme = getThemeTokens(isDark);
-  // Booking Wizard Step
+
+  // Booking Wizard Step (1 to 5)
   const [step, setStep] = useState<number>(1);
 
   // Dynamic Theme Styling Tokens
@@ -48,56 +56,110 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
   const textSecondary = theme.textSecondary;
   const inputBg = theme.inputBg;
 
-  // Selections
+  // Step 1: Services search & category filter
+  const [serviceSearch, setServiceSearch] = useState<string>('');
+  const [serviceCategory, setServiceCategory] = useState<string>('all');
   const [selectedServiceId, setSelectedServiceId] = useState<string>(services[0]?.id || '');
   const [selectedPractitionerId, setSelectedPractitionerId] = useState<string>('');
+
+  // Step 2: Date & Time
   const [selectedDate, setSelectedDate] = useState<string>('2026-09-30');
   const [selectedTime, setSelectedTime] = useState<string>('10:00');
   
-  // Patient details (+221 phone)
+  // Step 3: Patient details (+221 phone) & OTP
   const [patientName, setPatientName] = useState<string>('');
   const [patientPhone, setPatientPhone] = useState<string>('77 450 12 34');
   const [patientNotes, setPatientNotes] = useState<string>('');
-
-  // OTP Verification state
   const [otpSent, setOtpSent] = useState<boolean>(false);
   const [enteredOtp, setEnteredOtp] = useState<string>('');
   const [otpVerified, setOtpVerified] = useState<boolean>(false);
   const [simulatedOtpCode, setSimulatedOtpCode] = useState<string>('4829');
 
-  // Payment
+  // Step 4: Payment & Wave/OM simulation modal
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('on_site');
-  const [paymentDone, setPaymentDone] = useState<boolean>(false);
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [simulatedPaymentPending, setSimulatedPaymentPending] = useState<boolean>(false);
 
-  // Finished appointment
+  // Step 5: Finished appointment & printable ticket
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
+  const [showPrintTicket, setShowPrintTicket] = useState<boolean>(false);
+  const [copiedRef, setCopiedRef] = useState<boolean>(false);
 
-  // Available practitioners for the selected service
+  // Filtered services
+  const categories = useMemo(() => {
+    return Array.from(new Set(services.map((s) => s.category)));
+  }, [services]);
+
+  const filteredServices = useMemo(() => {
+    return services.filter((svc) => {
+      const matchesSearch = svc.name.toLowerCase().includes(serviceSearch.toLowerCase()) ||
+        svc.description.toLowerCase().includes(serviceSearch.toLowerCase()) ||
+        svc.category.toLowerCase().includes(serviceSearch.toLowerCase());
+      const matchesCat = serviceCategory === 'all' || svc.category === serviceCategory;
+      return matchesSearch && matchesCat;
+    });
+  }, [services, serviceSearch, serviceCategory]);
+
+  // Current active service
   const currentService = services.find((s) => s.id === selectedServiceId) || services[0];
   const eligiblePractitioners = practitioners.filter(
     (p) => currentService?.practitionerIds.includes(p.id)
   );
 
-  // Default practitioner if none selected
-  const activePractitioner = practitioners.find((p) => p.id === selectedPractitionerId) || eligiblePractitioners[0];
+  // Default practitioner if none selected or mismatched
+  const activePractitioner = practitioners.find((p) => p.id === selectedPractitionerId) || eligiblePractitioners[0] || practitioners[0];
 
-  // Available time slots (08:30 to 17:30 Dakar time)
-  const timeSlots = [
-    '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
-  ];
+  // Time slots categorized into Morning & Afternoon
+  const morningSlots = ['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00'];
+  const afternoonSlots = ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'];
 
-  // Phone validation for Senegal: starts with 77, 78, 76, 70, 75
-  const cleanPhone = patientPhone.replace(/\s+/g, '');
-  const isValidSenegalPhone = /^(77|78|76|70|75)\d{7}$/.test(cleanPhone);
+  // Check if selected date is a Friday (Dakar prayer pause 13h - 15h)
+  const isFriday = useMemo(() => {
+    if (!selectedDate) return false;
+    const dateObj = new Date(selectedDate);
+    return dateObj.getDay() === 5;
+  }, [selectedDate]);
+
+  // Auto-clean & format Senegal phone numbers
+  const cleanPhoneDigits = patientPhone.replace(/\D/g, '').replace(/^221/, '');
+  const isValidSenegalPhone = /^(77|78|76|70|75)\d{7}$/.test(cleanPhoneDigits);
+
+  const detectedOperator = useMemo(() => {
+    if (/^7[78]/.test(cleanPhoneDigits)) {
+      return { name: 'Orange Sénégal', badge: 'bg-orange-500/15 text-orange-400 border-orange-500/30' };
+    }
+    if (/^76/.test(cleanPhoneDigits)) {
+      return { name: 'Free Sénégal', badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30' };
+    }
+    if (/^70/.test(cleanPhoneDigits)) {
+      return { name: 'Expresso Sénégal', badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30' };
+    }
+    if (/^75/.test(cleanPhoneDigits)) {
+      return { name: 'Wave Mobile', badge: 'bg-sky-500/15 text-sky-400 border-sky-500/30' };
+    }
+    return null;
+  }, [cleanPhoneDigits]);
+
+  const handlePhoneChange = (val: string) => {
+    // Keep numbers and spaces
+    const cleaned = val.replace(/[^\d\s+]/g, '');
+    setPatientPhone(cleaned);
+  };
 
   const handleSendOtp = () => {
-    if (!isValidSenegalPhone) return;
+    if (!isValidSenegalPhone) {
+      showToast({
+        type: 'warning',
+        title: 'Numéro incomplet',
+        message: 'Veuillez saisir un numéro sénégalais valide à 9 chiffres (ex: 77 450 12 34).'
+      });
+      return;
+    }
     setOtpSent(true);
     showToast({
       type: 'info',
       title: 'Code OTP SMS envoyé 🇸🇳',
-      message: `Code temporaire envoyé au +221 ${patientPhone}. Utilisez le code 4829 pour tester.`
+      message: `Code temporaire envoyé au +221 ${cleanPhoneDigits}. Utilisez le code 4829 pour tester.`
     });
   };
 
@@ -118,22 +180,30 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
     }
   };
 
-  const handleConfirmBooking = () => {
+  const handleTriggerBookingConfirmation = () => {
+    if (paymentMethod === 'wave' || paymentMethod === 'orange_money') {
+      setShowPaymentModal(true);
+    } else {
+      finalizeBooking('pending', 0);
+    }
+  };
+
+  const finalizeBooking = (payStatus: 'pending' | 'deposit_paid', depositAmount: number) => {
     const newApt: Appointment = {
       id: `apt-${Date.now()}`,
       reference: `SN-RDV-${Math.floor(1000 + Math.random() * 9000)}`,
       tenantId: tenant.id,
       practitionerId: activePractitioner?.id || practitioners[0].id,
       serviceId: currentService.id,
-      patientName: patientName || 'Patient Visiteur',
-      patientPhone: `+221 ${patientPhone}`,
+      patientName: patientName.trim() || 'Patient Visiteur',
+      patientPhone: `+221 ${cleanPhoneDigits}`,
       date: selectedDate,
       timeSlot: selectedTime,
       status: 'confirmed',
       paymentMethod: paymentMethod,
-      paymentStatus: paymentMethod === 'on_site' ? 'pending' : 'deposit_paid',
+      paymentStatus: payStatus,
       amountXOF: currentService.priceXOF,
-      depositPaidXOF: paymentMethod === 'on_site' ? 0 : currentService.depositAmountXOF,
+      depositPaidXOF: depositAmount,
       source: 'online',
       notes: patientNotes,
       reminderSent: true,
@@ -142,12 +212,34 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
 
     setCreatedAppointment(newApt);
     onAppointmentCreated(newApt);
+    setShowPaymentModal(false);
+
     showToast({
       type: 'whatsapp',
       title: 'Rendez-vous confirmé & Notification WhatsApp envoyée',
       message: `Ticket ${newApt.reference} enregistré. SMS & WhatsApp bilingue (FR/Wolof) transmis.`
     });
     setStep(5);
+  };
+
+  const handleSimulatePaymentSuccess = () => {
+    setSimulatedPaymentPending(true);
+    setTimeout(() => {
+      setSimulatedPaymentPending(false);
+      finalizeBooking('deposit_paid', currentService.depositAmountXOF);
+    }, 1200);
+  };
+
+  const handleCopyReference = () => {
+    if (!createdAppointment) return;
+    navigator.clipboard.writeText(createdAppointment.reference);
+    setCopiedRef(true);
+    showToast({
+      type: 'info',
+      title: 'Référence copiée',
+      message: `${createdAppointment.reference} est dans votre presse-papier.`
+    });
+    setTimeout(() => setCopiedRef(false), 3000);
   };
 
   return (
@@ -165,13 +257,13 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
       </div>
 
       {/* Clinic Header Profile */}
-      <div className={`rounded-2xl p-6 sm:p-7 shadow-xl border transition flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${cardBg}`}>
+      <div className={`rounded-2xl p-5 sm:p-7 shadow-xl border transition flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${cardBg}`}>
         <div className="flex items-center gap-4">
           <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl sm:text-4xl shadow-inner shrink-0">
             {tenant.logo}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className={`text-xl sm:text-2xl font-black ${textPrimary}`}>{tenant.name}</h1>
               <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 border border-emerald-500/30">
                 Certifié Sénégal 🇸🇳
@@ -199,128 +291,224 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
         </div>
       </div>
 
-      {/* Stepper Progress Bar (Fluid & Mobile-Friendly) */}
+      {/* Stepper Progress Bar (Adaptive Mobile-First) */}
       {step < 5 && (
-        <div className={`rounded-xl p-3 sm:p-4 border shadow-sm transition flex items-center justify-between text-xs overflow-x-auto ${subBg}`}>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
-              step >= 1 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
-            }`}>1</span>
-            <span className={step === 1 ? `font-bold ${textPrimary}` : textSecondary}>Service & Médecin</span>
+        <div className={`rounded-xl p-3 sm:p-4 border shadow-sm transition ${subBg}`}>
+          <div className="flex sm:hidden items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="h-6 w-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
+                {step}
+              </span>
+              <span className={`text-xs font-bold ${textPrimary}`}>
+                {step === 1 && '1. Motif & Médecin'}
+                {step === 2 && '2. Date & Heure'}
+                {step === 3 && '3. Patient (+221)'}
+                {step === 4 && '4. Mode de Paiement'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {[1, 2, 3, 4].map((s) => (
+                <div
+                  key={s}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    s === step
+                      ? 'w-6 bg-emerald-500'
+                      : s < step
+                        ? 'w-2 bg-emerald-600/60'
+                        : isDark ? 'w-2 bg-slate-800' : 'w-2 bg-slate-200'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
-          <div className={`h-0.5 w-4 sm:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
-
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
-              step >= 2 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
-            }`}>2</span>
-            <span className={step === 2 ? `font-bold ${textPrimary}` : textSecondary}>Date & Heure</span>
-          </div>
-
-          <div className={`h-0.5 w-4 sm:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
-
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
-              step >= 3 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
-            }`}>3</span>
-            <span className={step === 3 ? `font-bold ${textPrimary}` : textSecondary}>Coordonnées (+221)</span>
-          </div>
-
-          <div className={`h-0.5 w-4 sm:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
-
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
-              step >= 4 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
-            }`}>4</span>
-            <span className={step === 4 ? `font-bold ${textPrimary}` : textSecondary}>Paiement</span>
+          <div className="hidden sm:flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
+                step >= 1 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
+              }`}>1</span>
+              <span className={step === 1 ? `font-bold ${textPrimary}` : textSecondary}>Service & Médecin</span>
+            </div>
+            <div className={`h-0.5 w-6 md:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
+                step >= 2 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
+              }`}>2</span>
+              <span className={step === 2 ? `font-bold ${textPrimary}` : textSecondary}>Date & Heure</span>
+            </div>
+            <div className={`h-0.5 w-6 md:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
+                step >= 3 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
+              }`}>3</span>
+              <span className={step === 3 ? `font-bold ${textPrimary}` : textSecondary}>Coordonnées (+221)</span>
+            </div>
+            <div className={`h-0.5 w-6 md:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
+                step >= 4 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
+              }`}>4</span>
+              <span className={step === 4 ? `font-bold ${textPrimary}` : textSecondary}>Paiement</span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Step 1: Select Service & Doctor */}
+      {/* ========================================================================= */}
+      {/* STEP 1: SELECT SERVICE & DOCTOR (WITH SEARCH & CATEGORIES) */}
+      {/* ========================================================================= */}
       {step === 1 && (
-        <div className={`rounded-2xl p-6 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
-          <div className="space-y-1">
-            <h2 className={`text-lg font-bold ${textPrimary}`}>1. Choisissez un motif de consultation ou acte</h2>
-            <p className={`text-xs ${textSecondary}`}>Tarifs officiels réglementés en Francs CFA (XOF)</p>
+        <div className={`rounded-2xl p-5 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className={`text-lg font-bold ${textPrimary}`}>1. Choisissez un motif de consultation ou acte</h2>
+              <p className={`text-xs ${textSecondary}`}>Tarifs officiels en Francs CFA (XOF) et praticiens disponibles</p>
+            </div>
+            <span className="text-xs font-mono font-bold text-emerald-500">
+              {filteredServices.length} prestation(s) trouvée(s)
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {services.map((svc) => {
-              const isSelected = selectedServiceId === svc.id;
-              return (
-                <div
-                  key={svc.id}
-                  onClick={() => {
-                    setSelectedServiceId(svc.id);
-                    if (!svc.practitionerIds.includes(selectedPractitionerId)) {
-                      setSelectedPractitionerId(svc.practitionerIds[0] || '');
-                    }
-                  }}
-                  className={`p-4 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-emerald-500/15 border-emerald-500 shadow-md ring-1 ring-emerald-500/50'
-                      : `${subBg} hover:border-slate-500/50`
+          {/* Search bar & Category filter pills */}
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Rechercher un acte (ex: Médecine Générale, Échographie, Cardiologie...)"
+                value={serviceSearch}
+                onChange={(e) => setServiceSearch(e.target.value)}
+                className={`w-full pl-9 pr-4 py-2.5 rounded-xl text-xs sm:text-sm border transition focus:outline-none focus:ring-2 focus:ring-emerald-500 ${inputBg}`}
+              />
+            </div>
+
+            {/* Category Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+              <button
+                type="button"
+                onClick={() => setServiceCategory('all')}
+                className={`px-3 py-1.5 rounded-xl font-semibold transition shrink-0 border ${
+                  serviceCategory === 'all'
+                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                    : `${subBg} border-slate-700/60 text-slate-400 hover:text-white`
+                }`}
+              >
+                Toutes les spécialités
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setServiceCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition shrink-0 border ${
+                    serviceCategory === cat
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                      : `${subBg} border-slate-700/60 text-slate-400 hover:text-white`
                   }`}
                 >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-emerald-500">{svc.category}</span>
-                      <span className={`text-xs flex items-center gap-1 font-mono ${textSecondary}`}>
-                        <Clock className="w-3 h-3" /> {svc.durationMinutes} min
-                      </span>
-                    </div>
-                    <h3 className={`font-bold text-sm mt-1 ${textPrimary}`}>{svc.name}</h3>
-                    <p className={`text-xs mt-1 line-clamp-2 ${textSecondary}`}>{svc.description}</p>
-                  </div>
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                  <div className={`mt-4 pt-3 border-t flex items-center justify-between ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-                    <span className={`text-sm font-black font-mono ${textPrimary}`}>
-                      {svc.priceXOF.toLocaleString('fr-FR')} FCFA
-                    </span>
-                    {svc.depositRequired && (
-                      <span className="text-[10px] bg-amber-500/20 text-amber-500 font-medium px-2 py-0.5 rounded border border-amber-500/30">
-                        Acompte : {svc.depositAmountXOF.toLocaleString('fr-FR')} FCFA
-                      </span>
-                    )}
+          {/* Services grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[380px] overflow-y-auto pr-1">
+            {filteredServices.length > 0 ? (
+              filteredServices.map((svc) => {
+                const isSelected = selectedServiceId === svc.id;
+                const assignedDocsCount = svc.practitionerIds.length;
+
+                return (
+                  <div
+                    key={svc.id}
+                    onClick={() => {
+                      setSelectedServiceId(svc.id);
+                      if (!svc.practitionerIds.includes(selectedPractitionerId)) {
+                        setSelectedPractitionerId(svc.practitionerIds[0] || '');
+                      }
+                    }}
+                    className={`p-4 rounded-xl border cursor-pointer transition flex flex-col justify-between ${
+                      isSelected
+                        ? 'bg-emerald-500/15 border-emerald-500 shadow-md ring-1 ring-emerald-500/50'
+                        : `${subBg} hover:border-slate-500/50`
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-emerald-500">{svc.category}</span>
+                        <span className={`text-xs flex items-center gap-1 font-mono ${textSecondary}`}>
+                          <Clock className="w-3 h-3 text-sky-400" /> {svc.durationMinutes} min
+                        </span>
+                      </div>
+                      <h3 className={`font-bold text-sm mt-1 ${textPrimary}`}>{svc.name}</h3>
+                      <p className={`text-xs mt-1 line-clamp-2 ${textSecondary}`}>{svc.description}</p>
+                    </div>
+
+                    <div className={`mt-4 pt-3 border-t flex items-center justify-between ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+                      <div>
+                        <span className={`text-sm font-black font-mono ${textPrimary}`}>
+                          {svc.priceXOF.toLocaleString('fr-FR')} FCFA
+                        </span>
+                        <span className="text-[10px] text-slate-500 block">
+                          {assignedDocsCount} praticien(s) habilité(s)
+                        </span>
+                      </div>
+                      {svc.depositRequired && (
+                        <span className="text-[10px] bg-amber-500/20 text-amber-500 font-medium px-2 py-0.5 rounded border border-amber-500/30">
+                          Acompte : {svc.depositAmountXOF.toLocaleString('fr-FR')} FCFA
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className={`col-span-full p-8 rounded-xl border text-center ${subBg}`}>
+                <p className={`text-xs ${textSecondary}`}>Aucune prestation ne correspond à votre recherche.</p>
+              </div>
+            )}
           </div>
 
           {/* Practitioner selection */}
           <div className={`space-y-3 pt-5 border-t ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-            <h3 className={`text-sm font-bold ${textPrimary}`}>Médecin disponible pour cet acte :</h3>
+            <h3 className={`text-sm font-bold ${textPrimary}`}>
+              Médecin disponible pour "{currentService.name}" :
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {eligiblePractitioners.map((doc) => {
-                const isDocActive = activePractitioner?.id === doc.id;
-                return (
-                  <div
-                    key={doc.id}
-                    onClick={() => setSelectedPractitionerId(doc.id)}
-                    className={`p-3.5 rounded-xl border cursor-pointer flex items-center gap-3 transition ${
-                      isDocActive
-                        ? 'bg-emerald-500/15 border-emerald-500 shadow-sm ring-1 ring-emerald-500/50'
-                        : `${subBg} hover:border-slate-500/50`
-                    }`}
-                  >
-                    <img 
-                      src={doc.avatar} 
-                      alt={doc.name} 
-                      className="h-12 w-12 rounded-xl object-cover border border-slate-700 shrink-0" 
-                    />
-                    <div>
-                      <h4 className={`text-xs font-bold ${textPrimary}`}>{doc.title} {doc.name}</h4>
-                      <p className={`text-[11px] ${textSecondary}`}>{doc.specialty}</p>
-                      <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1 mt-0.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {doc.room}
-                      </span>
+              {eligiblePractitioners.length > 0 ? (
+                eligiblePractitioners.map((doc) => {
+                  const isDocActive = activePractitioner?.id === doc.id;
+                  return (
+                    <div
+                      key={doc.id}
+                      onClick={() => setSelectedPractitionerId(doc.id)}
+                      className={`p-3.5 rounded-xl border cursor-pointer flex items-center gap-3 transition ${
+                        isDocActive
+                          ? 'bg-emerald-500/15 border-emerald-500 shadow-sm ring-1 ring-emerald-500/50'
+                          : `${subBg} hover:border-slate-500/50`
+                      }`}
+                    >
+                      <img 
+                        src={doc.avatar} 
+                        alt={doc.name} 
+                        className="h-12 w-12 rounded-xl object-cover border border-slate-700 shrink-0" 
+                      />
+                      <div className="min-w-0">
+                        <h4 className={`text-xs font-bold ${textPrimary} truncate`}>{doc.title} {doc.name}</h4>
+                        <p className={`text-[11px] ${textSecondary} truncate`}>{doc.specialty}</p>
+                        <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1 mt-0.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {doc.room}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className={`col-span-full p-4 rounded-xl border text-xs text-amber-500 ${subBg}`}>
+                  Tous les praticiens du cabinet sont qualifiés pour cette consultation générale.
+                </div>
+              )}
             </div>
           </div>
 
@@ -336,52 +524,97 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
         </div>
       )}
 
-      {/* Step 2: Date & Time */}
+      {/* ========================================================================= */}
+      {/* STEP 2: DATE & TIME (SPLIT MORNING / AFTERNOON + FRIDAY DJOUMA PAUSE) */}
+      {/* ========================================================================= */}
       {step === 2 && (
-        <div className={`rounded-2xl p-6 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
+        <div className={`rounded-2xl p-5 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
           <div className="space-y-1">
             <h2 className={`text-lg font-bold ${textPrimary}`}>2. Choisissez votre créneau de rendez-vous</h2>
             <p className={`text-xs ${textSecondary}`}>Fuseau horaire officiel : Africa/Dakar (Heure de Dakar)</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Date selection */}
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Date selection (5 cols) */}
+            <div className="md:col-span-5 space-y-3">
               <label className={`text-xs font-semibold block ${textPrimary}`}>Date du rendez-vous :</label>
               <input
                 type="date"
                 value={selectedDate}
                 min="2026-09-30"
-                max="2026-10-30"
+                max="2026-11-30"
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className={`w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition border ${inputBg}`}
               />
+
+              {/* Friday Notice Banner */}
+              {isFriday && (
+                <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs text-amber-400 space-y-1 animate-fadeIn">
+                  <div className="font-bold flex items-center gap-1.5">
+                    <span>🕌 Pause Prière du Vendredi (Dakar)</span>
+                  </div>
+                  <p className="text-[11px] text-amber-300/80 leading-relaxed">
+                    Les créneaux de 13h00 à 15h00 sont automatiquement bloqués pour la grande prière du Djouma.
+                  </p>
+                </div>
+              )}
+
               <div className={`p-3.5 rounded-xl border text-xs space-y-1 ${subBg}`}>
                 <span className="font-semibold text-emerald-500">💡 Calendrier Sénégal :</span>
-                <p className={textSecondary}>Les vendredis, la pause prière bloque automatiquement les créneaux entre 13h et 15h. Les jours fériés (Magal, Korité, Tabaski) sont exclus.</p>
+                <p className={textSecondary}>
+                  Les jours fériés (Magal de Touba, Korité, Tabaski, Fête Nationale) sont bloqués. Vous recevrez un rappel SMS & WhatsApp J-1.
+                </p>
               </div>
             </div>
 
-            {/* Time Slot selection */}
-            <div className="space-y-3">
-              <label className={`text-xs font-semibold block ${textPrimary}`}>Créneaux horaires disponibles :</label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {timeSlots.map((time) => {
-                  const isTimeSelected = selectedTime === time;
-                  return (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      className={`py-2 px-3 rounded-lg text-xs font-mono font-medium border transition ${
-                        isTimeSelected
-                          ? 'bg-emerald-600 text-white border-emerald-500 shadow-md font-bold'
-                          : `${subBg} hover:border-slate-500/50 ${textSecondary} hover:${textPrimary}`
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  );
-                })}
+            {/* Time Slot selection (7 cols: Morning + Afternoon) */}
+            <div className="md:col-span-7 space-y-4">
+              <div>
+                <span className={`text-xs font-bold block mb-2 text-sky-400 flex items-center gap-1.5`}>
+                  <Clock className="w-3.5 h-3.5" /> Matinée (08h30 - 12h00) :
+                </span>
+                <div className="grid grid-cols-4 gap-2">
+                  {morningSlots.map((time) => {
+                    const isTimeSelected = selectedTime === time;
+                    return (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`py-2 px-2 rounded-xl text-xs font-mono font-medium border transition ${
+                          isTimeSelected
+                            ? 'bg-emerald-600 text-white border-emerald-500 shadow-md font-bold ring-2 ring-emerald-500/30'
+                            : `${subBg} hover:border-slate-500/50 ${textSecondary} hover:${textPrimary}`
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <span className={`text-xs font-bold block mb-2 text-amber-400 flex items-center gap-1.5`}>
+                  <Clock className="w-3.5 h-3.5" /> Après-midi (14h00 - 17h00) :
+                </span>
+                <div className="grid grid-cols-4 gap-2">
+                  {afternoonSlots.map((time) => {
+                    const isTimeSelected = selectedTime === time;
+                    return (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`py-2 px-2 rounded-xl text-xs font-mono font-medium border transition ${
+                          isTimeSelected
+                            ? 'bg-emerald-600 text-white border-emerald-500 shadow-md font-bold ring-2 ring-emerald-500/30'
+                            : `${subBg} hover:border-slate-500/50 ${textSecondary} hover:${textPrimary}`
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
@@ -404,9 +637,11 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
         </div>
       )}
 
-      {/* Step 3: Contact & OTP Verification */}
+      {/* ========================================================================= */}
+      {/* STEP 3: CONTACT & OTP (SMART SENEGAL OPERATOR DETECTOR) */}
+      {/* ========================================================================= */}
       {step === 3 && (
-        <div className={`rounded-2xl p-6 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
+        <div className={`rounded-2xl p-5 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
           <div className="space-y-1">
             <h2 className={`text-lg font-bold ${textPrimary}`}>3. Coordonnées du patient & Authentification OTP</h2>
             <p className={`text-xs ${textSecondary}`}>
@@ -417,7 +652,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
           <div className="space-y-4 max-w-lg">
             <div>
               <label className={`text-xs font-semibold block mb-1 ${textPrimary}`}>
-                Nom complet du patient :
+                Nom complet du patient <span className="text-rose-500">*</span> :
               </label>
               <input
                 type="text"
@@ -429,45 +664,63 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
             </div>
 
             <div>
-              <label className={`text-xs font-semibold block mb-1 ${textPrimary}`}>
-                Numéro de téléphone mobile au Sénégal :
-              </label>
-              <div className="flex gap-2">
-                <div className={`border rounded-xl px-3 flex items-center text-xs font-mono font-bold text-emerald-500 ${subBg}`}>
-                  🇸🇳 +221
+              <div className="flex items-center justify-between mb-1">
+                <label className={`text-xs font-semibold ${textPrimary}`}>
+                  Numéro de téléphone mobile au Sénégal <span className="text-rose-500">*</span> :
+                </label>
+                {detectedOperator && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${detectedOperator.badge}`}>
+                    {detectedOperator.name}
+                  </span>
+                )}
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className={`border rounded-xl px-3 py-2.5 flex items-center text-xs font-mono font-bold text-emerald-500 shrink-0 ${subBg}`}>
+                    🇸🇳 +221
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="77 450 12 34"
+                    value={patientPhone}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    className={`flex-1 min-w-0 rounded-xl px-3 sm:px-4 py-2.5 text-sm font-mono focus:outline-none transition border ${inputBg}`}
+                  />
+                  {!otpVerified && (
+                    <button
+                      onClick={handleSendOtp}
+                      disabled={!isValidSenegalPhone}
+                      className="hidden sm:inline-flex px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs transition whitespace-nowrap shadow-sm hover:scale-[1.02]"
+                    >
+                      Envoyer code OTP
+                    </button>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  placeholder="77 450 12 34"
-                  value={patientPhone}
-                  onChange={(e) => setPatientPhone(e.target.value)}
-                  className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none transition border ${inputBg}`}
-                />
                 {!otpVerified && (
                   <button
                     onClick={handleSendOtp}
                     disabled={!isValidSenegalPhone}
-                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs transition whitespace-nowrap shadow-sm hover:scale-[1.02]"
+                    className="sm:hidden w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs transition shadow-sm"
                   >
-                    Envoyer code OTP
+                    Envoyer code OTP par SMS
                   </button>
                 )}
               </div>
               <p className={`text-[11px] mt-1 ${textSecondary}`}>
-                Opérateurs reconnus : Orange (77/78), Free (76), Expresso (70), Wave Mobile (75).
+                Numéros supportés : Orange (77/78), Free (76), Expresso (70), Wave Mobile (75).
               </p>
             </div>
 
-            {/* OTP Simulation modal / popup */}
+            {/* OTP Verification Prompt */}
             {otpSent && !otpVerified && (
               <div className={`p-4 rounded-xl border space-y-3 animate-fadeIn ${subBg} border-blue-500/50`}>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-blue-400 font-semibold flex items-center gap-1.5">
-                    <Smartphone className="w-4 h-4 text-emerald-500" />
-                    SMS / WhatsApp reçu sur le +221 {patientPhone} :
+                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 text-xs">
+                  <span className="text-blue-400 font-semibold flex items-center gap-1.5 truncate">
+                    <Smartphone className="w-4 h-4 text-emerald-500 shrink-0" />
+                    SMS de vérification envoyé au +221 {cleanPhoneDigits} :
                   </span>
-                  <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-mono text-[11px] font-bold">
-                    Code : {simulatedOtpCode}
+                  <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-mono text-[11px] font-bold self-start xs:self-auto">
+                    Code de test : {simulatedOtpCode}
                   </span>
                 </div>
 
@@ -478,7 +731,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
                     placeholder="4829"
                     value={enteredOtp}
                     onChange={(e) => setEnteredOtp(e.target.value)}
-                    className={`w-32 rounded-xl px-4 py-2 text-center text-lg font-mono tracking-widest focus:outline-none border ${inputBg}`}
+                    className={`w-28 xs:w-32 rounded-xl px-3 py-2 text-center text-lg font-mono tracking-widest focus:outline-none border ${inputBg}`}
                   />
                   <button
                     onClick={handleVerifyOtp}
@@ -497,9 +750,9 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
                         message: 'Code 4829 injecté et validé avec succès.'
                       });
                     }}
-                    className="px-3 py-2 rounded-xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/25 text-xs font-semibold transition"
+                    className="w-full sm:w-auto px-3 py-2 rounded-xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/25 text-xs font-semibold transition text-center"
                   >
-                    ⚡ Remplir automatiquement (4829)
+                    ⚡ Valider directement (4829)
                   </button>
                 </div>
               </div>
@@ -508,7 +761,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
             {otpVerified && (
               <div className="p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 flex items-center gap-2 text-xs text-emerald-500 font-medium">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Numéro +221 {patientPhone} vérifié avec succès par OTP.</span>
+                <span>Numéro +221 {cleanPhoneDigits} vérifié avec succès.</span>
               </div>
             )}
 
@@ -518,7 +771,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               </label>
               <textarea
                 rows={2}
-                placeholder="Ex: Douleurs abdominales depuis hier, déjà vu Dr. Ndiaye..."
+                placeholder="Ex: Bilan diabète, douleurs chroniques, premier rendez-vous..."
                 value={patientNotes}
                 onChange={(e) => setPatientNotes(e.target.value)}
                 className={`w-full rounded-xl px-4 py-2 text-xs focus:outline-none transition border ${inputBg}`}
@@ -534,8 +787,18 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               Retour
             </button>
             <button
-              onClick={() => setStep(4)}
-              disabled={!patientName}
+              onClick={() => {
+                if (!patientName.trim()) {
+                  showToast({
+                    type: 'warning',
+                    title: 'Nom requis',
+                    message: 'Veuillez renseigner le nom complet du patient.'
+                  });
+                  return;
+                }
+                setStep(4);
+              }}
+              disabled={!patientName.trim() || !isValidSenegalPhone}
               className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-900/30 transition hover:scale-[1.02]"
             >
               <span>Continuer : Mode de Paiement</span>
@@ -545,9 +808,11 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
         </div>
       )}
 
-      {/* Step 4: Payment Choice */}
+      {/* ========================================================================= */}
+      {/* STEP 4: PAYMENT CHOICE & INTERACTIVE MOBILE MONEY POPUP */}
+      {/* ========================================================================= */}
       {step === 4 && (
-        <div className={`rounded-2xl p-6 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
+        <div className={`rounded-2xl p-5 sm:p-7 border shadow-xl transition space-y-6 ${cardBg}`}>
           <div className="space-y-1">
             <h2 className={`text-lg font-bold ${textPrimary}`}>4. Mode de règlement & Acompte</h2>
             <p className={`text-xs ${textSecondary}`}>
@@ -621,9 +886,9 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className={`text-xs font-bold ${textPrimary}`}>Wave Sénégal (Acompte sécurisé)</h4>
+                    <h4 className={`text-xs font-bold ${textPrimary}`}>Wave Sénégal (Acompte instantané)</h4>
                     <span className="text-[10px] bg-sky-500/20 text-sky-400 px-1.5 py-0.2 rounded font-semibold">
-                      Instantané
+                      QR Code & Push
                     </span>
                   </div>
                   <p className={`text-[11px] ${textSecondary}`}>
@@ -675,17 +940,21 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               Retour
             </button>
             <button
-              onClick={handleConfirmBooking}
+              onClick={handleTriggerBookingConfirmation}
               className="px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-xl shadow-emerald-900/40 transition hover:scale-[1.02] active:scale-[0.98]"
             >
               <Check className="w-4 h-4" />
-              <span>Confirmer le rendez-vous</span>
+              <span>
+                {paymentMethod === 'on_site' ? 'Confirmer le rendez-vous' : `Régler l'acompte (${currentService.depositAmountXOF.toLocaleString('fr-FR')} FCFA)`}
+              </span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 5: Confirmation Ticket */}
+      {/* ========================================================================= */}
+      {/* STEP 5: CONFIRMATION TICKET & PRINT / WHATSAPP ACTIONS */}
+      {/* ========================================================================= */}
       {step === 5 && createdAppointment && (
         <div className={`rounded-2xl p-6 sm:p-8 space-y-6 text-center animate-fadeIn border shadow-xl ${cardBg}`}>
           <div className="h-16 w-16 bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center">
@@ -697,46 +966,73 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               Rendez-vous Confirmé avec Succès
             </span>
             <h2 className={`text-2xl font-black ${textPrimary}`}>Dalal ak Jàmm, votre rendez-vous est réservé !</h2>
-            <p className={`text-xs ${textSecondary}`}>
-              Référence du dossier : <span className={`font-mono font-bold ${textPrimary}`}>{createdAppointment.reference}</span>
-            </p>
+            <div className="flex items-center justify-center gap-2">
+              <span className={`text-xs ${textSecondary}`}>Référence du dossier :</span>
+              <button
+                type="button"
+                onClick={handleCopyReference}
+                className="inline-flex items-center gap-1 font-mono font-bold text-sm bg-emerald-500/10 text-emerald-500 px-2.5 py-0.5 rounded border border-emerald-500/30 hover:bg-emerald-500/20 transition"
+                title="Copier la référence"
+              >
+                <span>{createdAppointment.reference}</span>
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              {copiedRef && <span className="text-[10px] text-emerald-400 font-bold">Copié !</span>}
+            </div>
           </div>
 
-          {/* Ticket Card */}
-          <div className={`max-w-md mx-auto border-2 border-dashed rounded-2xl p-5 text-left space-y-3 relative ${subBg} ${isDark ? 'border-slate-700' : 'border-slate-300'}`}>
+          {/* Ticket Card (Screen & Print Friendly) */}
+          <div className={`max-w-md mx-auto border-2 border-dashed rounded-2xl p-5 text-left space-y-4 relative ${subBg} ${isDark ? 'border-slate-700' : 'border-slate-300'}`}>
             <div className={`flex justify-between items-start border-b pb-3 ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
               <div>
-                <span className={`text-[10px] uppercase ${textSecondary}`}>Établissement</span>
-                <h4 className={`font-bold text-sm ${textPrimary}`}>{tenant.name}</h4>
+                <span className={`text-[10px] uppercase font-bold tracking-wider ${textSecondary}`}>Établissement</span>
+                <h4 className={`font-black text-sm ${textPrimary}`}>{tenant.name}</h4>
                 <p className={`text-[11px] ${textSecondary}`}>{tenant.address}, {tenant.city}</p>
               </div>
-              <span className="text-2xl">{tenant.logo}</span>
+              <div className="text-right">
+                <span className="text-3xl block">{tenant.logo}</span>
+                <span className="text-[9px] font-mono text-emerald-500 font-bold">BILLET OFFICIEL</span>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
-                <span className={`block text-[10px] ${textSecondary}`}>Patient</span>
-                <span className={`font-semibold ${textPrimary}`}>{createdAppointment.patientName}</span>
+                <span className={`block text-[10px] font-semibold ${textSecondary}`}>Patient</span>
+                <span className={`font-bold ${textPrimary}`}>{createdAppointment.patientName}</span>
                 <div className="text-[11px] font-mono text-emerald-500 font-bold">{createdAppointment.patientPhone}</div>
               </div>
 
               <div>
-                <span className={`block text-[10px] ${textSecondary}`}>Médecin</span>
-                <span className={`font-semibold ${textPrimary}`}>{activePractitioner?.name}</span>
+                <span className={`block text-[10px] font-semibold ${textSecondary}`}>Praticien</span>
+                <span className={`font-bold ${textPrimary}`}>{activePractitioner?.name}</span>
                 <div className={`text-[11px] ${textSecondary}`}>{activePractitioner?.room}</div>
               </div>
 
               <div>
-                <span className={`block text-[10px] ${textSecondary}`}>Date & Heure</span>
-                <span className="font-bold text-emerald-500 font-mono">
-                  {createdAppointment.date} à {createdAppointment.timeSlot}
-                </span>
+                <span className={`block text-[10px] font-semibold ${textSecondary}`}>Acte / Prestation</span>
+                <span className={`font-bold ${textPrimary}`}>{currentService.name}</span>
+                <div className={`text-[11px] ${textSecondary}`}>{currentService.durationMinutes} minutes</div>
               </div>
 
               <div>
-                <span className={`block text-[10px] ${textSecondary}`}>Statut Paiement</span>
-                <span className={`font-semibold capitalize ${textPrimary}`}>
-                  {createdAppointment.paymentStatus === 'deposit_paid' ? 'Acompte Payé' : 'À régler sur place'}
+                <span className={`block text-[10px] font-semibold ${textSecondary}`}>Date & Heure</span>
+                <span className="font-bold text-emerald-500 font-mono text-xs">
+                  {createdAppointment.date} à {createdAppointment.timeSlot}
+                </span>
+              </div>
+            </div>
+
+            <div className={`pt-3 border-t flex justify-between items-center text-xs ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+              <div>
+                <span className={`text-[10px] block ${textSecondary}`}>Statut Paiement :</span>
+                <span className="font-bold text-emerald-500 font-mono">
+                  {createdAppointment.paymentStatus === 'deposit_paid' ? `Acompte Payé (${createdAppointment.depositPaidXOF.toLocaleString('fr-FR')} FCFA)` : 'À régler sur place'}
+                </span>
+              </div>
+              <div className="text-right">
+                <span className={`text-[10px] block ${textSecondary}`}>Solde restant :</span>
+                <span className="font-black font-mono">
+                  {(createdAppointment.amountXOF - createdAppointment.depositPaidXOF).toLocaleString('fr-FR')} FCFA
                 </span>
               </div>
             </div>
@@ -757,7 +1053,23 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
             </p>
           </div>
 
+          {/* Actions: Print Ticket, WhatsApp Share, Agenda, New Booking */}
           <div className="pt-2 flex flex-wrap justify-center gap-3">
+            <button
+              onClick={() => {
+                window.print();
+                showToast({
+                  type: 'success',
+                  title: 'Billet prêt pour impression',
+                  message: 'Dialogue d\'impression du récépissé déclenché.'
+                });
+              }}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow"
+            >
+              <Printer className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Imprimer le Billet</span>
+            </button>
+
             <button
               onClick={() => {
                 showToast({
@@ -796,6 +1108,91 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
             >
               Prendre un autre rendez-vous
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SIMULATED WAVE / ORANGE MONEY CHECKOUT MODAL */}
+      {/* ========================================================================= */}
+      {showPaymentModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className={`max-w-md w-full rounded-2xl p-6 border shadow-2xl space-y-5 ${
+            isDark ? 'bg-slate-900 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <div className="flex items-center justify-between border-b pb-3 border-slate-700/60">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{paymentMethod === 'wave' ? '🌊' : '🍊'}</span>
+                <h3 className="font-bold text-sm">
+                  {paymentMethod === 'wave' ? 'Passerelle Sécurisée Wave Sénégal' : 'Validation Orange Money (#144#)'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="text-center space-y-2">
+              <span className="text-xs text-slate-400">Montant de l'acompte de réservation :</span>
+              <p className="text-2xl font-black font-mono text-emerald-400">
+                {currentService.depositAmountXOF.toLocaleString('fr-FR')} FCFA
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Bénéficiaire : <strong>{tenant.name}</strong> • Compte marchand agréé BCEAO
+              </p>
+            </div>
+
+            {/* QR Code / Push prompt visual */}
+            <div className={`p-4 rounded-xl border flex flex-col items-center justify-center space-y-3 ${
+              isDark ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'
+            }`}>
+              <div className="w-32 h-32 bg-white p-2 rounded-xl border shadow flex flex-col items-center justify-center">
+                <QrCode className="w-24 h-24 text-slate-900" />
+                <span className="text-[9px] font-mono text-slate-700 font-bold uppercase mt-0.5">
+                  Scan Wave / OM
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 text-center max-w-xs">
+                {paymentMethod === 'wave'
+                  ? `Une notification Wave a été émise vers le +221 ${cleanPhoneDigits}. Scannez le QR Code ou validez dans l'appli Wave.`
+                  : `Tapez votre code secret #144# ou confirmez le push mobile reçu sur votre ligne +221 ${cleanPhoneDigits}.`}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={simulatedPaymentPending}
+                onClick={handleSimulatePaymentSuccess}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg transition flex items-center gap-2"
+              >
+                {simulatedPaymentPending ? (
+                  <>
+                    <span className="h-3 w-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Traitement bancaire...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Simuler validation réussie</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

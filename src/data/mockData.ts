@@ -1,4 +1,4 @@
-import { Tenant, Practitioner, MedicalService, Appointment, Holiday, NotificationLog } from '../types';
+import { Tenant, Practitioner, MedicalService, Appointment, Holiday, NotificationLog, MessageTemplate } from '../types';
 
 export const tenants: Tenant[] = [
   {
@@ -349,3 +349,189 @@ export const initialNotificationLogs: NotificationLog[] = [
     status: 'delivered',
   },
 ];
+
+export const initialMessageTemplates: MessageTemplate[] = [
+  {
+    id: 'tpl-1',
+    tenantId: 't-1',
+    channel: 'sms',
+    trigger: 'confirmation',
+    title: 'Confirmation Immédiate (SMS)',
+    description: "Envoyé instantanément au patient lors de la validation du rendez-vous.",
+    bodyFr: "{nom_clinique}: RDV confirmé avec {nom_medecin} ({specialite}) le {date_rdv} à {heure_rdv}. Billet: {lien_billet}. Contact: {contact_clinique}",
+    bodyWolof: "{nom_clinique}: Sa rdv ak {nom_medecin} le {date_rdv} ci {heure_rdv} dëppoo na. Sa pass: {lien_billet}. Wooteel ci {contact_clinique}",
+    languageMode: 'fr',
+    isActive: true,
+    sendTimingOffsetMinutes: 0,
+    includeTicketLink: true,
+    includeCancelLink: false,
+    includeGpsLink: false,
+    includeWaveDepositLink: true,
+    updatedAt: '2026-10-24 10:15',
+  },
+  {
+    id: 'tpl-2',
+    tenantId: 't-1',
+    channel: 'sms',
+    trigger: 'reminder_24h',
+    title: 'Rappel J-1 / 24 heures avant (SMS)',
+    description: "Rappel automatique 24h avant pour valider la présence et éviter les no-shows.",
+    bodyFr: "Rappel: {patient_prenom}, votre RDV à {nom_clinique} avec {nom_medecin} est DEMAIN à {heure_rdv}. Merci d'arriver 10 min en avance. Annuler: {lien_annulation}",
+    bodyWolof: "Fàttali: {patient_prenom}, sa rdv ak {nom_medecin} ci {nom_clinique} mingi ci ËLLËG ci {heure_rdv}. Ñëwal 10 mn ci kanam. Bu ko mënut: {lien_annulation}",
+    languageMode: 'bilingual',
+    isActive: true,
+    sendTimingOffsetMinutes: -1440,
+    includeTicketLink: false,
+    includeCancelLink: true,
+    includeGpsLink: false,
+    includeWaveDepositLink: false,
+    updatedAt: '2026-10-24 09:30',
+  },
+  {
+    id: 'tpl-3',
+    tenantId: 't-1',
+    channel: 'sms',
+    trigger: 'reminder_2h',
+    title: 'Rappel Express H-2 (SMS)',
+    description: "Dernière alerte 2h avant avec rappel du lieu et contact d'accueil.",
+    bodyFr: "Flash RDV: {nom_clinique} vous attend aujourd'hui à {heure_rdv} avec {nom_medecin}. Adresse: {adresse_clinique}. Tel: {contact_clinique}",
+    bodyWolof: "Flash RDV: {nom_clinique} mingi lay xaar tey ci {heure_rdv} ak {nom_medecin}. Fi nu nekk: {adresse_clinique}. Tel: {contact_clinique}",
+    languageMode: 'fr',
+    isActive: true,
+    sendTimingOffsetMinutes: -120,
+    includeTicketLink: false,
+    includeCancelLink: false,
+    includeGpsLink: false,
+    includeWaveDepositLink: false,
+    updatedAt: '2026-10-23 16:40',
+  },
+  {
+    id: 'tpl-4',
+    tenantId: 't-1',
+    channel: 'whatsapp',
+    trigger: 'confirmation',
+    title: 'Confirmation & Pass Digital (WhatsApp)',
+    description: "Message riche complet avec QR code, itinéraire Dakar et détails du praticien.",
+    bodyFr: `Bonjour *{patient_prenom} {patient_nom}*,
+
+Votre rendez-vous chez *{nom_clinique}* est bien confirmé ! ✅
+
+🩺 *Médecin :* {nom_medecin} ({specialite})
+📅 *Date :* {date_rdv}
+⏰ *Heure :* {heure_rdv}
+📍 *Adresse :* {adresse_clinique}
+💳 *Acompte réglé :* {montant_acompte}
+
+Consultez votre pass d'accès numérique et QR code d'enregistrement :
+👉 {lien_billet}
+
+Pour tout empêchement ou report :
+📞 {contact_clinique} | Annulation autonome : {lien_annulation}
+
+_Merci de votre confiance et bonne santé !_`,
+    bodyWolof: `Salam *{patient_prenom} {patient_nom}*,
+
+Sa rendez-vous ci *{nom_clinique}* dëppoo na tey ! ✅
+
+🩺 *Praticien :* {nom_medecin} ({specialite})
+📅 *Bes :* {date_rdv}
+⏰ *Waxtu :* {heure_rdv}
+📍 *Fi nu nekk :* {adresse_clinique}
+
+Jëlal sa pass numérique ak QR code :
+👉 {lien_billet}
+
+Bu amee lu ko tée :
+📞 {contact_clinique} | {lien_annulation}`,
+    languageMode: 'fr',
+    isActive: true,
+    sendTimingOffsetMinutes: 0,
+    includeTicketLink: true,
+    includeCancelLink: true,
+    includeGpsLink: true,
+    includeWaveDepositLink: true,
+    updatedAt: '2026-10-24 11:00',
+  },
+  {
+    id: 'tpl-5',
+    tenantId: 't-1',
+    channel: 'whatsapp',
+    trigger: 'reminder_24h',
+    title: 'Rappel J-1 & Consignes (WhatsApp)',
+    description: "Rappel détaillé la veille avec liste des documents à apporter.",
+    bodyFr: `Bonjour *{patient_prenom}*,
+
+Ceci est un rappel pour votre consultation de demain avec *{nom_medecin}* à *{heure_rdv}*.
+
+📋 *À ne pas oublier :*
+• Votre carnet de santé ou dossier médical
+• Vos ordonnances en cours ou analyses récentes
+• Votre pass digital : {lien_billet}
+
+En cas d'empêchement, merci de prévenir l'accueil au *{contact_clinique}* ou via {lien_annulation}. À très bientôt !`,
+    bodyWolof: `Salam *{patient_prenom}*,
+
+Fàttali la sa rdv ëllëg ak *{nom_medecin}* ci *{heure_rdv}*.
+
+📋 *Bul fàtte yóbbaale :*
+• Sa karnet wér-gi-yaram walla analiis yi
+• Sa pass digital : {lien_billet}
+
+Bu amee lu xawa tée, wooteel ci *{contact_clinique}*. Jërëjëf !`,
+    languageMode: 'bilingual',
+    isActive: true,
+    sendTimingOffsetMinutes: -1440,
+    includeTicketLink: true,
+    includeCancelLink: true,
+    includeGpsLink: false,
+    includeWaveDepositLink: false,
+    updatedAt: '2026-10-24 08:20',
+  },
+  {
+    id: 'tpl-6',
+    tenantId: 't-1',
+    channel: 'whatsapp',
+    trigger: 'cancellation',
+    title: "Avis d'Annulation (WhatsApp)",
+    description: "Notification immédiate lorsque le rendez-vous est libéré.",
+    bodyFr: `Bonjour *{patient_prenom}*, votre rendez-vous du *{date_rdv}* à *{heure_rdv}* chez *{nom_clinique}* a bien été annulé.
+
+Pour réserver un nouveau créneau disponible :
+👉 https://sunu.sn/e/{tenant_slug}
+
+Contact direct : {contact_clinique}`,
+    languageMode: 'fr',
+    isActive: true,
+    sendTimingOffsetMinutes: 0,
+    includeTicketLink: false,
+    includeCancelLink: false,
+    includeGpsLink: false,
+    includeWaveDepositLink: false,
+    updatedAt: '2026-10-22 14:10',
+  },
+  {
+    id: 'tpl-7',
+    tenantId: 't-1',
+    channel: 'whatsapp',
+    trigger: 'followup',
+    title: 'Suivi Post-Consultation (WhatsApp)',
+    description: "Message de courtoisie et recueil d'avis envoyé 24h après le rendez-vous.",
+    bodyFr: `Bonjour *{patient_prenom}*,
+
+Toute l'équipe de *{nom_clinique}* espère que votre consultation avec *{nom_medecin}* s'est bien passée.
+
+Votre santé et votre confort nous tiennent à cœur.
+N'hésitez pas à nous contacter au *{contact_clinique}* pour tout renseignement sur vos ordonnances.
+
+_Prenez bien soin de vous !_ 🌿`,
+    languageMode: 'fr',
+    isActive: false,
+    sendTimingOffsetMinutes: 1440,
+    includeTicketLink: false,
+    includeCancelLink: false,
+    includeGpsLink: false,
+    includeWaveDepositLink: false,
+    updatedAt: '2026-10-20 18:00',
+  },
+];
+

@@ -17,10 +17,19 @@ import {
   FileSpreadsheet, 
   Globe,
   FileCode,
-  Download
+  Download,
+  Plus,
+  Trash2,
+  Pencil,
+  Search,
+  AlertTriangle,
+  Tag
 } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getThemeTokens } from '../../utils/themeTokens';
+import { ServiceModal } from '../services/ServiceModal';
+import { PractitionerModal } from '../admin/PractitionerModal';
+import { MessageTemplateConfig } from '../admin/MessageTemplateConfig';
 
 interface ClinicAdminSpaceProps {
   tenant: Tenant;
@@ -29,6 +38,11 @@ interface ClinicAdminSpaceProps {
   appointments: Appointment[];
   isDark: boolean;
   onUpdateTenantSettings?: (updated: Partial<Tenant>) => void;
+  onSavePractitioner?: (data: Omit<Practitioner, 'id'> & { id?: string }) => void;
+  onDeletePractitioner?: (docId: string) => void;
+  onSaveService?: (serviceData: Omit<MedicalService, 'id'> & { id?: string }) => void;
+  onDeleteService?: (serviceId: string) => void;
+  onTogglePractitionerService?: (serviceId: string, practitionerId: string) => void;
 }
 
 export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
@@ -37,10 +51,67 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
   services,
   appointments,
   isDark,
+  onUpdateTenantSettings,
+  onSavePractitioner,
+  onDeletePractitioner,
+  onSaveService,
+  onDeleteService,
+  onTogglePractitionerService,
 }) => {
   const { showToast } = useToast();
   const theme = getThemeTokens(isDark);
-  const [activeTab, setActiveTab] = useState<'overview' | 'practitioners' | 'services' | 'payments' | 'laravel_code'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'practitioners' | 'services' | 'payments' | 'messages' | 'laravel_code'>('overview');
+
+  // Practitioners Management State
+  const [isPractitionerModalOpen, setIsPractitionerModalOpen] = useState(false);
+  const [practitionerToEdit, setPractitionerToEdit] = useState<Practitioner | null>(null);
+  const [practitionerToDelete, setPractitionerToDelete] = useState<Practitioner | null>(null);
+
+  // Services CRUD State
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [serviceToEdit, setServiceToEdit] = useState<MedicalService | null>(null);
+  const [serviceToDelete, setServiceToDelete] = useState<MedicalService | null>(null);
+  const [serviceSearch, setServiceSearch] = useState('');
+  const [serviceCategoryFilter, setServiceCategoryFilter] = useState('all');
+
+  // Export CSV handler
+  const handleExportCSV = () => {
+    const headers = ['Reference', 'Date', 'Heure', 'Patient', 'Telephone', 'Praticien', 'Service', 'Statut', 'Tarif_FCFA', 'Acompte_FCFA', 'Moyen_Paiement'];
+    const rows = appointments.map((a) => {
+      const doc = practitioners.find((p) => p.id === a.practitionerId)?.name || 'N/A';
+      const svc = services.find((s) => s.id === a.serviceId)?.name || 'N/A';
+      return [
+        a.reference,
+        a.date,
+        a.timeSlot,
+        `"${a.patientName.replace(/"/g, '""')}"`,
+        `"${a.patientPhone}"`,
+        `"${doc.replace(/"/g, '""')}"`,
+        `"${svc.replace(/"/g, '""')}"`,
+        a.status,
+        a.amountXOF,
+        a.depositPaidXOF,
+        a.paymentMethod
+      ].join(';');
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `sunurdv_${tenant.slug}_registre_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast({
+      type: 'success',
+      title: 'Export CSV réussi 📊',
+      message: `${appointments.length} rendez-vous exportés pour votre comptabilité.`
+    });
+  };
 
   // Local settings form state
   const [requireDeposit, setRequireDeposit] = useState(tenant.requireDeposit);
@@ -96,10 +167,10 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
         </div>
 
         {/* Navigation tabs within Admin */}
-        <div className={`flex flex-wrap items-center p-1 rounded-xl border ${subBg} text-xs`}>
+        <div className={`flex items-center p-1.5 rounded-xl border ${subBg} text-xs overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0`}>
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'overview' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
@@ -107,7 +178,7 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('practitioners')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'practitioners' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
@@ -115,7 +186,7 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('services')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'services' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
@@ -123,19 +194,30 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('payments')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'payments' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Acomptes & Wave
           </button>
           <button
+            onClick={() => setActiveTab('messages')}
+            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
+              activeTab === 'messages' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-900/30' : `${textSecondary} hover:${textPrimary}`
+            }`}
+          >
+            <span>Rappels SMS/WhatsApp</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500 text-white font-bold">
+              Auto
+            </span>
+          </button>
+          <button
             onClick={() => setActiveTab('laravel_code')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
               activeTab === 'laravel_code' ? 'bg-emerald-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            Code Laravel 11 ⚡
+            Code Laravel 12 ⚡
           </button>
         </div>
       </div>
@@ -143,6 +225,27 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
       {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* Action Bar with CSV Export */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl">
+            <div>
+              <h3 className={`text-xs sm:text-sm font-bold ${textPrimary} flex items-center gap-2`}>
+                <Building2 className="w-4 h-4 text-indigo-500" />
+                <span>Registre & Journal Quotidien du Cabinet</span>
+              </h3>
+              <p className={`text-[11px] ${textSecondary}`}>
+                {appointments.length} rendez-vous enregistrés aujourd'hui • Total prévisionnel : {totalRevenue.toLocaleString('fr-FR')} FCFA
+              </p>
+            </div>
+            <button
+              onClick={handleExportCSV}
+              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-indigo-950/40 transition hover:scale-[1.02]"
+              title="Exporter le registre complet au format Excel CSV UTF-8"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Exporter Registre CSV (Excel)</span>
+            </button>
+          </div>
+
           {/* Key Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className={`p-4 rounded-xl border ${cardBg}`}>
@@ -243,89 +346,255 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
               <h2 className={`text-base font-bold ${textPrimary}`}>Médecins & Praticiens du Cabinet</h2>
               <p className={`text-xs ${textSecondary}`}>Gestion des spécialités, bureaux de consultation et plannings.</p>
             </div>
-            <button className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow transition">
+            <button
+              onClick={() => {
+                setPractitionerToEdit(null);
+                setIsPractitionerModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-950/40 transition hover:scale-[1.02]"
+            >
               <UserPlus className="w-3.5 h-3.5" />
-              <span>Ajouter un praticien</span>
+              <span>+ Ajouter un praticien</span>
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {practitioners.map((doc) => (
-              <div key={doc.id} className={`p-4 rounded-xl border ${subBg} flex items-start gap-4`}>
-                <img src={doc.avatar} alt={doc.name} className="h-14 w-14 rounded-xl object-cover border border-slate-700" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className={`font-bold text-sm ${textPrimary} truncate`}>{doc.title} {doc.name}</h3>
-                    <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold border ${theme.badgeSuccess}`}>
-                      Actif
-                    </span>
-                  </div>
-                  <p className="text-xs text-indigo-500 font-medium">{doc.specialty}</p>
-                  <p className={`text-xs ${textSecondary} mt-1 flex items-center gap-1`}>
-                    <span>Bureau : {doc.room}</span>
-                    <span>•</span>
-                    <span className="font-mono">{doc.phone}</span>
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <button className={`text-[11px] px-2.5 py-1 rounded border transition ${cardBg} ${textPrimary}`}>
-                      Gérer créneaux
-                    </button>
-                    <button className={`text-[11px] px-2.5 py-1 rounded border transition ${cardBg} ${textPrimary}`}>
-                      Modifier fiche
-                    </button>
+            {practitioners.map((doc) => {
+              const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+              const activeDaysText = doc.availableDays && doc.availableDays.length > 0
+                ? doc.availableDays.map(d => dayNames[d - 1]).join(', ')
+                : 'Lun - Ven';
+
+              return (
+                <div key={doc.id} className={`p-4 rounded-xl border ${subBg} flex items-start gap-4 transition hover:border-slate-500/50`}>
+                  <img src={doc.avatar} alt={doc.name} className="h-14 w-14 rounded-xl object-cover border border-slate-700 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className={`font-bold text-sm ${textPrimary} truncate`}>{doc.title} {doc.name}</h3>
+                      <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold border ${theme.badgeSuccess}`}>
+                        Actif
+                      </span>
+                    </div>
+                    <p className="text-xs text-indigo-500 font-medium">{doc.specialty}</p>
+                    <p className={`text-xs ${textSecondary} mt-1 flex items-center gap-1 flex-wrap`}>
+                      <span>{doc.room}</span>
+                      <span>•</span>
+                      <span className="font-mono">{doc.phone}</span>
+                    </p>
+                    <p className="text-[10px] text-emerald-500 font-medium mt-1">
+                      📅 Vacations : {activeDaysText}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            showToast({
+                              type: 'info',
+                              title: `Créneaux de ${doc.name}`,
+                              message: `Consultations ouvertes les ${activeDaysText} de ${tenant.openingHours.start} à ${tenant.openingHours.end} (Pause Vendredi 13h-15h incluse).`
+                            });
+                          }}
+                          className={`text-[11px] px-2.5 py-1 rounded border transition ${cardBg} ${textPrimary} hover:border-indigo-500`}
+                        >
+                          Gérer créneaux
+                        </button>
+                        <button
+                          onClick={() => {
+                            setPractitionerToEdit(doc);
+                            setIsPractitionerModalOpen(true);
+                          }}
+                          className={`text-[11px] px-2.5 py-1 rounded border transition ${cardBg} ${textPrimary} hover:border-indigo-500`}
+                        >
+                          Modifier fiche
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => setPractitionerToDelete(doc)}
+                        className="p-1.5 rounded-lg border border-rose-900/40 text-rose-400 hover:bg-rose-950/40 transition"
+                        title={`Supprimer ${doc.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* TAB 3: SERVICES & PRICING */}
+      {/* TAB 3: SERVICES & PRICING (CRUD + MANY-TO-MANY) */}
       {activeTab === 'services' && (
         <div className={`p-6 rounded-2xl border ${cardBg} space-y-6`}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className={`text-base font-bold ${textPrimary}`}>Prestations Médicales & Tarifs en FCFA</h2>
-              <p className={`text-xs ${textSecondary}`}>Chaque acte dispose de sa durée de consultation et de son acompte dédié.</p>
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${theme.badgeSuccess}`}>
+                  Nomenclature des Actes
+                </span>
+                <span className={`text-[10px] font-mono ${theme.accentSky}`}>
+                  Relation Many-to-Many Praticiens
+                </span>
+              </div>
+              <h2 className={`text-base sm:text-lg font-bold ${textPrimary} mt-1`}>
+                Prestations Médicales & Tarifs en FCFA
+              </h2>
+              <p className={`text-xs ${textSecondary}`}>
+                Configurez les actes, durées, honoraires, acomptes requis et affectez les médecins habilités.
+              </p>
             </div>
-            <button className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition">
-              + Nouvel Acte
+            <button
+              onClick={() => {
+                setServiceToEdit(null);
+                setIsServiceModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-950/30 self-start sm:self-auto"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Nouvel Acte</span>
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className={`border-b ${theme.borderSubtle} ${textSecondary}`}>
-                  <th className="pb-3 font-semibold">Acte / Consultation</th>
-                  <th className="pb-3 font-semibold">Spécialité</th>
-                  <th className="pb-3 font-semibold">Durée</th>
-                  <th className="pb-3 font-semibold text-right">Tarif Total (FCFA)</th>
-                  <th className="pb-3 font-semibold text-right">Acompte Requis (FCFA)</th>
-                  <th className="pb-3 font-semibold text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${theme.tableDivider}`}>
-                {services.map((svc) => (
-                  <tr key={svc.id} className={theme.tableRowHover}>
-                    <td className={`py-3 font-bold ${textPrimary}`}>{svc.name}</td>
-                    <td className="py-3 text-indigo-500 font-medium">{svc.category}</td>
-                    <td className="py-3 font-mono">{svc.durationMinutes} min</td>
-                    <td className={`py-3 text-right font-black font-mono ${textPrimary}`}>
-                      {svc.priceXOF.toLocaleString('fr-FR')} FCFA
-                    </td>
-                    <td className={`py-3 text-right font-mono ${theme.accentSky}`}>
-                      {svc.depositRequired ? `${svc.depositAmountXOF.toLocaleString('fr-FR')} FCFA` : 'Aucun'}
-                    </td>
-                    <td className="py-3 text-center">
-                      <button className="text-xs text-indigo-500 hover:underline">Modifier</button>
-                    </td>
-                  </tr>
+          {/* Search & Filter Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+            <div className="sm:col-span-8 relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={serviceSearch}
+                onChange={(e) => setServiceSearch(e.target.value)}
+                placeholder="Rechercher un acte médical, une spécialité..."
+                className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs border transition focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme.inputBg}`}
+              />
+            </div>
+            <div className="sm:col-span-4">
+              <select
+                value={serviceCategoryFilter}
+                onChange={(e) => setServiceCategoryFilter(e.target.value)}
+                className={`w-full px-3 py-2 rounded-xl text-xs border transition focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme.inputBg}`}
+              >
+                <option value="all">Toutes les catégories</option>
+                {Array.from(new Set(services.map((s) => s.category))).map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+            </div>
           </div>
+
+          {/* Services Table & Cards */}
+          {(() => {
+            const filtered = services.filter((s) => {
+              const matchesSearch = s.name.toLowerCase().includes(serviceSearch.toLowerCase()) ||
+                s.category.toLowerCase().includes(serviceSearch.toLowerCase()) ||
+                s.description.toLowerCase().includes(serviceSearch.toLowerCase());
+              const matchesCat = serviceCategoryFilter === 'all' || s.category === serviceCategoryFilter;
+              return matchesSearch && matchesCat;
+            });
+
+            if (filtered.length === 0) {
+              return (
+                <div className={`p-8 rounded-xl border text-center space-y-2 ${subBg}`}>
+                  <Tag className="w-8 h-8 text-slate-500 mx-auto" />
+                  <p className={`text-xs font-bold ${textPrimary}`}>Aucun acte médical ne correspond à vos critères.</p>
+                  <p className={`text-[11px] ${textSecondary}`}>Modifiez votre recherche ou créez un nouvel acte.</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+                <table className="w-full min-w-[700px] text-left text-xs">
+                  <thead>
+                    <tr className={`border-b ${theme.borderSubtle} ${textSecondary}`}>
+                      <th className="pb-3 font-semibold">Acte & Description</th>
+                      <th className="pb-3 font-semibold">Spécialité</th>
+                      <th className="pb-3 font-semibold">Durée</th>
+                      <th className="pb-3 font-semibold">Praticiens Habilités (Many-to-Many)</th>
+                      <th className="pb-3 font-semibold text-right">Tarif (FCFA)</th>
+                      <th className="pb-3 font-semibold text-right">Acompte</th>
+                      <th className="pb-3 font-semibold text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${theme.tableDivider}`}>
+                    {filtered.map((svc) => {
+                      const assigned = practitioners.filter((p) => svc.practitionerIds.includes(p.id));
+                      return (
+                        <tr key={svc.id} className={theme.tableRowHover}>
+                          <td className="py-3 pr-2">
+                            <span className={`font-bold block ${textPrimary}`}>{svc.name}</span>
+                            <span className={`text-[11px] ${textSecondary} line-clamp-1 max-w-xs block mt-0.5`}>
+                              {svc.description}
+                            </span>
+                          </td>
+                          <td className="py-3">
+                            <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                              {svc.category}
+                            </span>
+                          </td>
+                          <td className="py-3 font-mono font-bold whitespace-nowrap">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-sky-400" />
+                              {svc.durationMinutes} min
+                            </span>
+                          </td>
+                          <td className="py-3">
+                            <div className="flex items-center gap-1 flex-wrap max-w-xs">
+                              {assigned.length > 0 ? (
+                                assigned.map((doc) => (
+                                  <span
+                                    key={doc.id}
+                                    title={`${doc.title} ${doc.name} (${doc.specialty})`}
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] border ${
+                                      isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-800'
+                                    }`}
+                                  >
+                                    <img src={doc.avatar} alt={doc.name} className="w-3.5 h-3.5 rounded-full object-cover" />
+                                    <span className="truncate max-w-[80px]">{doc.name.split(' ').slice(-1)}</span>
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-[10px] text-amber-500 italic">Aucun praticien assigné</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className={`py-3 text-right font-black font-mono whitespace-nowrap ${textPrimary}`}>
+                            {svc.priceXOF.toLocaleString('fr-FR')} FCFA
+                          </td>
+                          <td className={`py-3 text-right font-mono whitespace-nowrap ${theme.accentSky}`}>
+                            {svc.depositRequired ? `${svc.depositAmountXOF.toLocaleString('fr-FR')} FCFA` : 'Aucun'}
+                          </td>
+                          <td className="py-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => {
+                                  setServiceToEdit(svc);
+                                  setIsServiceModalOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-indigo-400 hover:text-indigo-300 transition"
+                                title="Modifier"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setServiceToDelete(svc)}
+                                className="p-1.5 rounded-lg border border-rose-900/50 hover:bg-rose-950/50 text-rose-400 transition"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -430,12 +699,17 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
         </form>
       )}
 
-      {/* TAB 5: LARAVEL CODE DEMO */}
+      {/* TAB 5: AUTOMATED MESSAGE TEMPLATES CONFIG */}
+      {activeTab === 'messages' && (
+        <MessageTemplateConfig tenant={tenant} isDark={isDark} />
+      )}
+
+      {/* TAB 6: LARAVEL 12 CODE ARCHITECTURE */}
       {activeTab === 'laravel_code' && (
         <div className={`p-6 rounded-2xl border ${cardBg} space-y-4`}>
           <div>
             <h2 className={`text-base font-bold ${textPrimary} flex items-center gap-2`}>
-              <span>Architecture Laravel 11 pour l'Espace Admin Cabinet</span>
+              <span>Architecture Laravel 12 pour l'Espace Admin Cabinet</span>
             </h2>
             <p className={`text-xs ${textSecondary}`}>
               Contrôleur et routes dédiées avec isolation multi-tenant et middleware d'autorisation de rôle (Admin / Gestionnaire).
@@ -472,6 +746,169 @@ class ClinicAdminController extends Controller
         return view('tenant.admin.dashboard', compact('tenant', 'services', 'practitioners', 'appointments'));
     }
 }`}</pre>
+          </div>
+        </div>
+      )}
+
+      {/* Reusable Modal for Service Create / Edit */}
+      <ServiceModal
+        isOpen={isServiceModalOpen}
+        onClose={() => {
+          setIsServiceModalOpen(false);
+          setServiceToEdit(null);
+        }}
+        onSave={(data) => {
+          if (onSaveService) {
+            onSaveService(data);
+            showToast({
+              type: 'success',
+              title: data.id ? 'Prestation modifiée' : 'Prestation enregistrée',
+              message: `${data.name} (${data.priceXOF.toLocaleString('fr-FR')} FCFA) est disponible pour les réservations.`
+            });
+          }
+          setIsServiceModalOpen(false);
+          setServiceToEdit(null);
+        }}
+        serviceToEdit={serviceToEdit}
+        practitioners={practitioners}
+        tenantId={tenant.id}
+        isDark={isDark}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      {serviceToDelete && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className={`max-w-md w-full rounded-2xl p-6 border shadow-2xl space-y-4 ${
+            isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-rose-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold">Confirmer la suppression</h3>
+                <p className={`text-xs ${textSecondary}`}>Cette action supprimera l'acte pour tous les praticiens associés.</p>
+              </div>
+            </div>
+
+            <p className="text-xs leading-relaxed">
+              Êtes-vous sûr de vouloir supprimer la prestation <strong>"{serviceToDelete.name}"</strong> ({serviceToDelete.priceXOF.toLocaleString('fr-FR')} FCFA) ?
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setServiceToDelete(null)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                  isDark ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                }`}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onDeleteService) {
+                    onDeleteService(serviceToDelete.id);
+                    showToast({
+                      type: 'info',
+                      title: 'Prestation supprimée',
+                      message: `L'acte ${serviceToDelete.name} a été supprimé de la nomenclature.`
+                    });
+                  }
+                  setServiceToDelete(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-950/40 transition flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Supprimer</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reusable Modal for Practitioner Create / Edit */}
+      <PractitionerModal
+        isOpen={isPractitionerModalOpen}
+        onClose={() => {
+          setIsPractitionerModalOpen(false);
+          setPractitionerToEdit(null);
+        }}
+        onSave={(data) => {
+          if (onSavePractitioner) {
+            onSavePractitioner(data);
+            showToast({
+              type: 'success',
+              title: data.id ? 'Praticien mis à jour' : 'Praticien ajouté',
+              message: `${data.title} ${data.name} (${data.specialty}) est désormais configuré.`
+            });
+          }
+          setIsPractitionerModalOpen(false);
+          setPractitionerToEdit(null);
+        }}
+        practitionerToEdit={practitionerToEdit}
+        tenantId={tenant.id}
+        isDark={isDark}
+      />
+
+      {/* Practitioner Delete Confirmation Dialog */}
+      {practitionerToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className={`max-w-md w-full rounded-2xl p-6 border shadow-2xl space-y-4 ${
+            isDark ? 'bg-slate-900 border-slate-700 text-slate-100' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-rose-500" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold">Supprimer le praticien</h3>
+                <p className={`text-xs ${textSecondary}`}>Le praticien sera retiré des plannings de consultation.</p>
+              </div>
+            </div>
+
+            <p className="text-xs leading-relaxed">
+              Êtes-vous sûr de vouloir retirer <strong>{practitionerToDelete.title} {practitionerToDelete.name}</strong> ({practitionerToDelete.specialty}) de la clinique ?
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setPractitionerToDelete(null)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                  isDark ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                }`}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onDeletePractitioner) {
+                    onDeletePractitioner(practitionerToDelete.id);
+                    showToast({
+                      type: 'info',
+                      title: 'Praticien retiré',
+                      message: `${practitionerToDelete.name} a été retiré de l'équipe médicale.`
+                    });
+                  }
+                  setPractitionerToDelete(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-950/40 transition flex items-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Supprimer</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

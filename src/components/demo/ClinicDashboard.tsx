@@ -120,18 +120,50 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
   const presenceRate = appointments.length > 0 ? Math.round((arrivedCount / appointments.length) * 100) : 0;
   const inQueueCount = appointments.filter((a) => a.status === 'arrived').length;
 
-  // Filtered appointments
+  // Filtered appointments with enhanced Senegal phone & multi-field matching
   const filteredAppointments = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const queryDigits = searchQuery.replace(/\D/g, '');
+
     return appointments.filter((apt) => {
-      const matchesSearch = 
-        apt.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        apt.patientPhone.includes(searchQuery) ||
-        apt.reference.toLowerCase().includes(searchQuery.toLowerCase());
+      let matchesSearch = true;
+      if (query) {
+        const nameMatch = apt.patientName.toLowerCase().includes(query);
+        const refMatch = apt.reference.toLowerCase().includes(query);
+        const rawPhoneMatch = apt.patientPhone.toLowerCase().includes(query);
+        const phoneDigits = apt.patientPhone.replace(/\D/g, '');
+        const digitsMatch = queryDigits.length >= 2 && phoneDigits.includes(queryDigits);
+        
+        const doc = practitioners.find((p) => p.id === apt.practitionerId);
+        const docMatch = doc ? (doc.name.toLowerCase().includes(query) || doc.specialty.toLowerCase().includes(query)) : false;
+        const svc = services.find((s) => s.id === apt.serviceId);
+        const svcMatch = svc ? svc.name.toLowerCase().includes(query) : false;
+
+        matchesSearch = nameMatch || refMatch || rawPhoneMatch || digitsMatch || docMatch || svcMatch;
+      }
       
       const matchesStatus = statusFilter === 'all' || apt.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [appointments, searchQuery, statusFilter]);
+  }, [appointments, searchQuery, statusFilter, practitioners, services]);
+
+  const totalMatchesForQuery = useMemo(() => {
+    if (!searchQuery.trim()) return appointments.length;
+    const query = searchQuery.trim().toLowerCase();
+    const queryDigits = searchQuery.replace(/\D/g, '');
+    return appointments.filter((apt) => {
+      const nameMatch = apt.patientName.toLowerCase().includes(query);
+      const refMatch = apt.reference.toLowerCase().includes(query);
+      const rawPhoneMatch = apt.patientPhone.toLowerCase().includes(query);
+      const phoneDigits = apt.patientPhone.replace(/\D/g, '');
+      const digitsMatch = queryDigits.length >= 2 && phoneDigits.includes(queryDigits);
+      const doc = practitioners.find((p) => p.id === apt.practitionerId);
+      const docMatch = doc ? (doc.name.toLowerCase().includes(query) || doc.specialty.toLowerCase().includes(query)) : false;
+      const svc = services.find((s) => s.id === apt.serviceId);
+      const svcMatch = svc ? svc.name.toLowerCase().includes(query) : false;
+      return nameMatch || refMatch || rawPhoneMatch || digitsMatch || docMatch || svcMatch;
+    }).length;
+  }, [appointments, searchQuery, practitioners, services]);
 
   // Trigger realtime confirmation notification inside ClinicDashboard
   const triggerRealtimeConfirmation = (apt: Appointment) => {
@@ -432,10 +464,10 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
         </div>
 
         {/* Sub Navigation Tabs */}
-        <div className={`flex flex-wrap items-center p-1.5 rounded-xl border text-xs gap-1 ${subBg}`}>
+        <div className={`flex items-center p-1.5 rounded-xl border text-xs gap-1 overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0 ${subBg}`}>
           <button
             onClick={() => setActiveSubTab('agenda')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               activeSubTab === 'agenda' 
                 ? 'bg-amber-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
@@ -447,7 +479,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
 
           <button
             onClick={() => setActiveSubTab('receptionist')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               activeSubTab === 'receptionist' 
                 ? 'bg-amber-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
@@ -459,7 +491,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
 
           <button
             onClick={() => setActiveSubTab('queue')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               activeSubTab === 'queue' 
                 ? 'bg-sky-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
@@ -471,7 +503,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
 
           <button
             onClick={() => setActiveSubTab('notifications')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               activeSubTab === 'notifications' 
                 ? 'bg-emerald-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
@@ -483,7 +515,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
 
           <button
             onClick={() => setActiveSubTab('holidays')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
               activeSubTab === 'holidays' 
                 ? 'bg-purple-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
@@ -494,6 +526,279 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
           </button>
         </div>
       </div>
+
+      {/* ============================================================== */}
+      {/* BARRE DE RECHERCHE GLOBALE RÉCEPTIONNISTE (NOM & TÉLÉPHONE)    */}
+      {/* ============================================================== */}
+      <section 
+        aria-label="Barre de recherche globale de patients"
+        className={`rounded-2xl p-4 sm:p-5 border shadow-lg transition-all duration-200 ${cardBg} ${
+          searchQuery.trim() ? 'ring-2 ring-amber-500/50' : ''
+        }`}
+      >
+        <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center shrink-0">
+                <Search className="w-4 h-4 text-amber-500" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className={`text-sm sm:text-base font-bold ${textPrimary}`}>
+                    Recherche Globale de Patients
+                  </h2>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                    searchQuery.trim() 
+                      ? 'bg-amber-500 text-white' 
+                      : isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    {searchQuery.trim() ? `${filteredAppointments.length} résultat(s)` : `${appointments.length} patients`}
+                  </span>
+                </div>
+                <p className={`text-[11px] ${textSecondary}`}>
+                  Filtrage instantané par nom, prénom, numéro de téléphone (+221, 77, 78, 76...) ou référence RDV.
+                </p>
+              </div>
+            </div>
+
+            {/* Quick status filters */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+              {(['all', 'confirmed', 'arrived', 'in_progress', 'completed'] as const).map((st) => (
+                <button
+                  key={`global-filter-${st}`}
+                  type="button"
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition ${
+                    statusFilter === st
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : `${subBg} ${textSecondary} hover:${textPrimary}`
+                  }`}
+                >
+                  {st === 'all' && 'Tous statuts'}
+                  {st === 'confirmed' && 'Confirmés'}
+                  {st === 'arrived' && "Salle d'attente"}
+                  {st === 'in_progress' && 'En consultation'}
+                  {st === 'completed' && 'Terminés'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Large search input with live clear & quick suggestions */}
+          <div className="relative flex items-center">
+            <Search className={`w-5 h-5 absolute left-3.5 ${searchQuery.trim() ? 'text-amber-500' : textSecondary} transition-colors pointer-events-none`} />
+            <input
+              type="text"
+              aria-label="Rechercher un patient par nom ou numéro de téléphone"
+              placeholder="Tapez un nom (ex: Aminata, Mamadou...) ou un numéro (ex: 77 450, 78..., 76...)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`w-full rounded-xl pl-11 pr-24 py-3 text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-amber-500 transition shadow-inner ${inputBg}`}
+            />
+            
+            <div className="absolute right-2.5 flex items-center gap-1.5">
+              {searchQuery.trim() ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                  title="Effacer la recherche"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Effacer</span>
+                </button>
+              ) : (
+                <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono text-slate-400 px-2 py-1 rounded border border-slate-700/30">
+                  <span>Recherche en direct</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Immediate Live Results Tray when user is searching */}
+          {searchQuery.trim().length > 0 && (
+            <div className={`mt-1 p-4 rounded-xl border ${subBg} space-y-3 animate-fadeIn`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2 border-slate-700/20">
+                <span className={`text-xs font-bold ${textPrimary} flex items-center gap-2`}>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Résultats instantanés pour « {searchQuery} » ({filteredAppointments.length})</span>
+                </span>
+                {statusFilter !== 'all' && totalMatchesForQuery > filteredAppointments.length && (
+                  <button
+                    type="button"
+                    onClick={() => setStatusFilter('all')}
+                    className="text-xs text-amber-500 hover:underline font-semibold"
+                  >
+                    Afficher aussi {totalMatchesForQuery - filteredAppointments.length} résultat(s) sous d'autres statuts
+                  </button>
+                )}
+              </div>
+
+              {filteredAppointments.length === 0 ? (
+                <div className="p-6 text-center space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-500 mx-auto flex items-center justify-center">
+                    <Search className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className={`text-xs font-semibold ${textPrimary}`}>
+                      Aucun patient trouvé pour « <span className="text-amber-500">{searchQuery}</span> »
+                    </p>
+                    <p className={`text-[11px] mt-0.5 ${textSecondary}`}>
+                      Vérifiez l'orthographe du nom ou le numéro de téléphone saisi (+221).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const isDigits = /^\+?\d+$/.test(searchQuery.replace(/[\s-]/g, ''));
+                      if (isDigits) {
+                        setPatientPhone(searchQuery);
+                        setPatientName('');
+                      } else {
+                        setPatientName(searchQuery);
+                      }
+                      setActiveSubTab('receptionist');
+                    }}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md transition"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Créer un RDV guichet pour ce patient</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredAppointments.map((apt) => {
+                    const doc = practitioners.find((p) => p.id === apt.practitionerId);
+                    const svc = services.find((s) => s.id === apt.serviceId);
+                    return (
+                      <div 
+                        key={`quick-match-${apt.id}`}
+                        className={`p-3.5 rounded-xl border transition-all hover:shadow-md space-y-2.5 ${cardBg} ${
+                          apt.status === 'arrived' ? 'ring-1 ring-amber-500/40' : ''
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h4 className={`text-xs font-bold truncate ${textPrimary} flex items-center gap-1.5`}>
+                              <span className="truncate">{apt.patientName}</span>
+                              {apt.source === 'online' && (
+                                <span className={`text-[9px] px-1.5 py-0.2 rounded font-normal shrink-0 border ${theme.badgeSuccess}`}>
+                                  En ligne
+                                </span>
+                              )}
+                            </h4>
+                            <a 
+                              href={`tel:${apt.patientPhone.replace(/\s+/g, '')}`}
+                              className="text-[11px] font-mono text-amber-500 hover:underline flex items-center gap-1 mt-0.5"
+                            >
+                              <Phone className="w-3 h-3 shrink-0" />
+                              <span>{apt.patientPhone}</span>
+                            </a>
+                          </div>
+                          <div className="shrink-0">
+                            {getStatusBadge(apt.status)}
+                          </div>
+                        </div>
+
+                        <div className={`text-[11px] p-2 rounded-lg ${subBg} space-y-1`}>
+                          <div className="flex items-center justify-between">
+                            <span className={textSecondary}>Heure : <strong className={`font-mono ${theme.accentGreen}`}>{apt.timeSlot}</strong></span>
+                            <span className="font-mono text-[10px] text-slate-400">{apt.reference}</span>
+                          </div>
+                          <div className="truncate">
+                            <span className={textSecondary}>Acte : </span>
+                            <strong className={textPrimary}>{svc?.name}</strong>
+                          </div>
+                          <div className="truncate text-slate-400">
+                            Dr. {doc?.name} ({doc?.room || 'Cabinet'})
+                          </div>
+                        </div>
+
+                        {/* Quick action buttons per matched patient */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          {apt.status === 'confirmed' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onUpdateStatus(apt.id, 'arrived');
+                                showToast({
+                                  type: 'success',
+                                  title: 'Patient pointé à l\'accueil',
+                                  message: `${apt.patientName} est placé en salle d'attente.`
+                                });
+                              }}
+                              className="flex-1 py-1.5 px-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] transition flex items-center justify-center gap-1 shadow-xs"
+                            >
+                              <UserCheck className="w-3 h-3" />
+                              <span>Pointer Arrivé</span>
+                            </button>
+                          )}
+
+                          {apt.status === 'arrived' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onUpdateStatus(apt.id, 'in_progress');
+                                showToast({
+                                  type: 'info',
+                                  title: 'Appel consultation',
+                                  message: `${apt.patientName} est appelé en consultation.`
+                                });
+                              }}
+                              className="flex-1 py-1.5 px-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] transition flex items-center justify-center gap-1 shadow-xs"
+                            >
+                              <Bell className="w-3 h-3" />
+                              <span>Appeler consultation</span>
+                            </button>
+                          )}
+
+                          {apt.status === 'in_progress' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onUpdateStatus(apt.id, 'completed');
+                                showToast({
+                                  type: 'success',
+                                  title: 'Consultation terminée',
+                                  message: `Dossier de ${apt.patientName} clôturé.`
+                                });
+                              }}
+                              className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition flex items-center justify-center gap-1 shadow-xs"
+                            >
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Finaliser</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => triggerManualWhatsAppReminder(apt)}
+                            className="p-1.5 rounded-lg bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 border border-emerald-500/20 transition"
+                            title="Envoyer un rappel WhatsApp"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveSubTab('agenda');
+                            }}
+                            className="p-1.5 rounded-lg bg-slate-700/20 hover:bg-slate-700/40 text-slate-300 border border-slate-700/30 transition text-[11px] font-semibold"
+                            title="Voir dans la vue agenda complète"
+                          >
+                            <Calendar className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* KPI Stats Cards with soft hover feedback */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -556,8 +861,18 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                   placeholder="Rechercher patient, tél..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full rounded-xl pl-8 pr-3 py-2 text-xs border focus:outline-none transition ${inputBg}`}
+                  className={`w-full rounded-xl pl-8 pr-7 py-2 text-xs border focus:outline-none transition ${inputBg}`}
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-100"
+                    title="Effacer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               <button
@@ -606,20 +921,20 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                 return (
                   <div
                     key={apt.id}
-                    className={`p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition ${theme.tableRowHover}`}
+                    className={`p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 transition ${theme.tableRowHover}`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className={`rounded-xl p-2.5 text-center min-w-[72px] border ${subBg}`}>
+                    <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                      <div className={`rounded-xl p-2 sm:p-2.5 text-center min-w-[64px] sm:min-w-[72px] shrink-0 border ${subBg}`}>
                         <span className={`text-sm font-black font-mono block ${theme.accentGreen}`}>
                           {apt.timeSlot}
                         </span>
                         <span className={`text-[10px] ${textSecondary}`}>Dakar</span>
                       </div>
 
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h4 className={`text-sm font-bold ${textPrimary}`}>{apt.patientName}</h4>
-                          <span className={`text-xs font-mono ${textSecondary}`}>{apt.patientPhone}</span>
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <h4 className={`text-sm font-bold truncate ${textPrimary}`}>{apt.patientName}</h4>
+                          <span className={`text-xs font-mono shrink-0 ${textSecondary}`}>{apt.patientPhone}</span>
                           {apt.source === 'online' && (
                             <span className={`text-[10px] px-2 py-0.5 rounded-full border ${theme.badgeSuccess}`}>
                               🌐 En ligne Wave
@@ -644,13 +959,13 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                         </div>
 
                         {apt.notes && (
-                          <p className={`text-[11px] italic ${textSecondary}`}>Note: {apt.notes}</p>
+                          <p className={`text-[11px] italic break-words ${textSecondary}`}>Note: {apt.notes}</p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 justify-end">
-                      <div className="text-right hidden sm:block">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-between md:justify-end w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-slate-700/30">
+                      <div className="text-left sm:text-right">
                         <div className={`text-xs font-mono font-bold ${textPrimary}`}>
                           {apt.amountXOF.toLocaleString('fr-FR')} FCFA
                         </div>
@@ -665,7 +980,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         {getStatusBadge(apt.status)}
 
                         {/* Status Progression Pills */}
@@ -867,18 +1182,32 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
             </p>
           </div>
 
+          {searchQuery.trim() && (
+            <div className="flex items-center justify-between text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 font-semibold">
+              <span>File filtrée pour la recherche « {searchQuery} » ({filteredAppointments.length} résultat(s))</span>
+              <button 
+                type="button" 
+                onClick={() => setSearchQuery('')}
+                className="hover:underline flex items-center gap-1 font-bold text-slate-300"
+              >
+                <X className="w-3 h-3" />
+                <span>Réinitialiser la file</span>
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             {/* Colonne 1: Salle d'attente */}
             <div className={`rounded-xl p-4 border space-y-3 ${subBg}`}>
               <div className="flex items-center justify-between border-b pb-2 border-slate-700/20">
                 <span className="font-bold text-xs text-amber-500 uppercase">En salle d'attente</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${theme.badgeWarning}`}>
-                  {appointments.filter((a) => a.status === 'arrived').length}
+                  {(searchQuery.trim() ? filteredAppointments : appointments).filter((a) => a.status === 'arrived').length}
                 </span>
               </div>
 
               <div className="space-y-2">
-                {appointments
+                {(searchQuery.trim() ? filteredAppointments : appointments)
                   .filter((a) => a.status === 'arrived')
                   .map((a) => (
                     <div key={a.id} className={`p-3 rounded-xl border space-y-2 ${cardBg}`}>
@@ -903,12 +1232,12 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
               <div className="flex items-center justify-between border-b pb-2 border-slate-700/20">
                 <span className="font-bold text-xs text-sky-500 uppercase">En Consultation</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${theme.badgeInfo}`}>
-                  {appointments.filter((a) => a.status === 'in_progress').length}
+                  {(searchQuery.trim() ? filteredAppointments : appointments).filter((a) => a.status === 'in_progress').length}
                 </span>
               </div>
 
               <div className="space-y-2">
-                {appointments
+                {(searchQuery.trim() ? filteredAppointments : appointments)
                   .filter((a) => a.status === 'in_progress')
                   .map((a) => (
                     <div key={a.id} className={`p-3 rounded-xl border border-sky-500/40 space-y-2 ${cardBg}`}>
@@ -932,12 +1261,12 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
               <div className="flex items-center justify-between border-b pb-2 border-slate-700/20">
                 <span className="font-bold text-xs text-emerald-500 uppercase">Terminés</span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${theme.badgeSuccess}`}>
-                  {appointments.filter((a) => a.status === 'completed').length}
+                  {(searchQuery.trim() ? filteredAppointments : appointments).filter((a) => a.status === 'completed').length}
                 </span>
               </div>
 
               <div className="space-y-2">
-                {appointments
+                {(searchQuery.trim() ? filteredAppointments : appointments)
                   .filter((a) => a.status === 'completed')
                   .map((a) => (
                     <div key={a.id} className={`p-3 rounded-xl border space-y-1 ${cardBg}`}>

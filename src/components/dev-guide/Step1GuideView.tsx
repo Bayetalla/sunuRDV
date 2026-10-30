@@ -88,7 +88,7 @@ export const Step1GuideView: React.FC<Step1GuideViewProps> = ({ isDark = true })
             </p>
           </div>
 
-          <div className={`border p-4 rounded-xl flex flex-col gap-2 min-w-[220px] transition-colors ${
+          <div className={`border p-4 rounded-xl flex flex-col gap-2 w-full md:w-auto md:min-w-[220px] transition-colors ${
             isDark ? 'bg-slate-900/80 border-slate-700' : 'bg-white border-slate-200 shadow-sm'
           }`}>
             <div className={`text-xs font-semibold ${theme.textSecondary}`}>Progression Étape 1 :</div>
@@ -187,12 +187,12 @@ export const Step1GuideView: React.FC<Step1GuideViewProps> = ({ isDark = true })
         {/* File Tabs & Viewer */}
         <div className={`rounded-2xl border shadow-xl overflow-hidden ${theme.cardBg}`}>
           {/* File selector buttons */}
-          <div className={`p-2 border-b flex flex-wrap gap-1.5 ${theme.subBg}`}>
+          <div className={`p-2 border-b flex items-center gap-1.5 overflow-x-auto no-scrollbar sm:flex-wrap ${theme.subBg}`}>
             {step1Data.files.map((file, idx) => (
               <button
                 key={file.path}
                 onClick={() => setActiveFileIndex(idx)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition shrink-0 ${
                   activeFileIndex === idx
                     ? 'bg-blue-600 text-white font-bold shadow-xs'
                     : `${theme.textSecondary} hover:${theme.textPrimary}`
