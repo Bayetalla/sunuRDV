@@ -23,7 +23,9 @@ import {
   Pencil,
   Search,
   AlertTriangle,
-  Tag
+  Tag,
+  Smartphone,
+  Banknote
 } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getThemeTokens } from '../../utils/themeTokens';
@@ -108,7 +110,7 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
 
     showToast({
       type: 'success',
-      title: 'Export CSV réussi 📊',
+      title: 'Export CSV réussi',
       message: `${appointments.length} rendez-vous exportés pour votre comptabilité.`
     });
   };
@@ -147,77 +149,81 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
       {/* Top Banner Context */}
       <div className={`rounded-2xl p-4 sm:p-6 border ${cardBg} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
-          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/30 flex items-center justify-center text-2xl sm:text-3xl shrink-0">
-            {tenant.logo}
+          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl overflow-hidden border border-indigo-500/30 shadow-md shrink-0 bg-slate-800 flex items-center justify-center">
+            {tenant.logo && tenant.logo.startsWith('http') ? (
+              <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" />
+            ) : (
+              <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${theme.badgeInfo}`}>
+              <span className={`text-[10px] sm:text-xs lg:text-xs font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1 rounded-md border whitespace-nowrap shrink-0 ${theme.badgeInfo}`}>
                 Direction & Administration
               </span>
-              <span className={`text-[10px] font-mono break-all sm:break-normal ${theme.accentGreen}`}>/e/{tenant.slug}/admin</span>
+              <span className={`text-xs lg:text-sm font-mono whitespace-nowrap ${theme.accentGreen}`}>/e/{tenant.slug}/admin</span>
             </div>
-            <h1 className={`text-lg sm:text-2xl font-black ${textPrimary} mt-1 truncate`}>
+            <h1 className={`text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${textPrimary} mt-1 truncate`}>
               Gestion du Cabinet : {tenant.name}
             </h1>
-            <p className={`text-xs ${textSecondary} line-clamp-2`}>
+            <p className={`text-xs sm:text-sm lg:text-base ${textSecondary} line-clamp-2 mt-0.5`}>
               Configuration des praticiens, des actes médicaux, des acomptes Wave / Orange Money et des autorisations.
             </p>
           </div>
         </div>
 
         {/* Navigation tabs within Admin */}
-        <div className={`flex items-center p-1.5 rounded-xl border ${subBg} text-xs overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0`}>
+        <div className={`flex items-center p-1.5 rounded-xl border ${subBg} text-xs lg:text-sm overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0 gap-1`}>
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'overview' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'overview' ? 'bg-indigo-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Vue d'ensemble
           </button>
           <button
             onClick={() => setActiveTab('practitioners')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'practitioners' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'practitioners' ? 'bg-indigo-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Médecins ({practitioners.length})
           </button>
           <button
             onClick={() => setActiveTab('services')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'services' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'services' ? 'bg-indigo-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Actes & Tarifs ({services.length})
           </button>
           <button
             onClick={() => setActiveTab('payments')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'payments' ? 'bg-indigo-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'payments' ? 'bg-indigo-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Acomptes & Wave
           </button>
           <button
             onClick={() => setActiveTab('messages')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 lg:px-4 py-2 rounded-lg font-semibold transition flex items-center gap-1.5 shrink-0 ${
               activeTab === 'messages' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-900/30' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             <span>Rappels SMS/WhatsApp</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500 text-white font-bold">
+            <span className="text-[10px] lg:text-xs px-2 py-0.5 rounded-full bg-emerald-500 text-white font-bold font-mono">
               Auto
             </span>
           </button>
           <button
             onClick={() => setActiveTab('laravel_code')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'laravel_code' ? 'bg-emerald-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'laravel_code' ? 'bg-emerald-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            Code Laravel 12 ⚡
+            Code Laravel 12
           </button>
         </div>
       </div>
@@ -389,7 +395,7 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
                       <span className="font-mono">{doc.phone}</span>
                     </p>
                     <p className="text-[10px] text-emerald-500 font-medium mt-1">
-                      📅 Vacations : {activeDaysText}
+                      Vacations : {activeDaysText}
                     </p>
                     <div className="mt-3 flex items-center justify-between gap-2">
                       <div className="flex gap-2">
@@ -663,7 +669,8 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
 
               <div className={`flex items-center justify-between p-2 rounded-lg border ${theme.borderSubtle}`}>
                 <span className={`text-xs font-semibold ${textPrimary} flex items-center gap-2`}>
-                  🌊 Wave Sénégal
+                  <Smartphone className="w-4 h-4 text-sky-500" />
+                  <span>Wave Sénégal</span>
                 </span>
                 <input
                   type="checkbox"
@@ -675,7 +682,8 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
 
               <div className={`flex items-center justify-between p-2 rounded-lg border ${theme.borderSubtle}`}>
                 <span className={`text-xs font-semibold ${textPrimary} flex items-center gap-2`}>
-                  🟠 Orange Money Sénégal
+                  <Smartphone className="w-4 h-4 text-orange-500" />
+                  <span>Orange Money Sénégal</span>
                 </span>
                 <input
                   type="checkbox"
@@ -687,7 +695,8 @@ export const ClinicAdminSpace: React.FC<ClinicAdminSpaceProps> = ({
 
               <div className={`flex items-center justify-between p-2 rounded-lg border ${theme.borderSubtle} opacity-70`}>
                 <span className={`text-xs ${textSecondary} flex items-center gap-2`}>
-                  💵 Paiement sur place au comptoir
+                  <Banknote className="w-4 h-4 text-emerald-500" />
+                  <span>Paiement sur place au comptoir</span>
                 </span>
                 <span className={`text-[10px] font-bold ${theme.accentGreen}`}>Toujours Actif</span>
               </div>

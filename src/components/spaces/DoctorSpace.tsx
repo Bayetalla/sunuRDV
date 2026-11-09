@@ -57,11 +57,18 @@ export const DoctorSpace: React.FC<DoctorSpaceProps> = ({
   const { showToast } = useToast();
   const theme = getThemeTokens(isDark);
 
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>(doctor.id);
+  const activeDoctor = (allPractitioners.length > 0 ? allPractitioners.find((p) => p.id === selectedDoctorId) : null) || doctor;
+
+  React.useEffect(() => {
+    setSelectedDoctorId(doctor.id);
+  }, [doctor.id]);
+
   // Sub-tab: 'consultations' or 'services'
   const [activeTab, setActiveTab] = useState<'consultations' | 'services'>('consultations');
 
   // Consultation state per-appointment (isolates notes and prescriptions)
-  const myAppointments = appointments.filter((a) => a.practitionerId === doctor.id);
+  const myAppointments = appointments.filter((a) => a.practitionerId === activeDoctor.id);
   const [selectedAptId, setSelectedAptId] = useState<string>(myAppointments[0]?.id || appointments[0]?.id || '');
   const [prescriptionItem, setPrescriptionItem] = useState<string>('');
   const [noteSaved, setNoteSaved] = useState<boolean>(false);
@@ -225,41 +232,60 @@ export const DoctorSpace: React.FC<DoctorSpaceProps> = ({
       <div className={`rounded-2xl p-4 sm:p-6 border ${cardBg} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
           <img 
-            src={doctor.avatar} 
-            alt={doctor.name} 
+            src={activeDoctor.avatar} 
+            alt={activeDoctor.name} 
             onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80';
+              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80';
             }}
             className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl object-cover border-2 border-sky-500/40 shadow-lg shrink-0" 
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${theme.badgeInfo}`}>
+              <span className={`text-[10px] sm:text-xs lg:text-xs font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1 rounded-md border whitespace-nowrap shrink-0 ${theme.badgeInfo}`}>
                 Espace Praticien
               </span>
-              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentGreen}`}>Salle : {doctor.room}</span>
-              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentSky}`}>{doctor.phone}</span>
+              <span className={`text-xs lg:text-sm font-mono whitespace-nowrap ${theme.accentGreen}`}>Salle : {activeDoctor.room}</span>
+              <span className={`text-xs lg:text-sm font-mono whitespace-nowrap ${theme.accentSky}`}>{activeDoctor.phone}</span>
             </div>
-            <h1 className={`text-lg sm:text-2xl font-black ${textPrimary} mt-1 truncate`}>
-              {doctor.title} {doctor.name}
-            </h1>
-            <p className={`text-xs ${textSecondary} truncate`}>
-              {doctor.specialty} • Dakar (GMT+0)
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <h1 className={`text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${textPrimary} truncate`}>
+                {activeDoctor.title} {activeDoctor.name}
+              </h1>
+              {allPractitioners.length > 1 && (
+                <select
+                  value={activeDoctor.id}
+                  onChange={(e) => {
+                    setSelectedDoctorId(e.target.value);
+                    const newMy = appointments.filter((a) => a.practitionerId === e.target.value);
+                    if (newMy.length > 0) setSelectedAptId(newMy[0].id);
+                  }}
+                  className={`text-xs lg:text-sm rounded-lg px-2.5 py-1.5 border font-medium transition ${theme.inputBg}`}
+                >
+                  {allPractitioners.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      Praticien : {p.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <p className={`text-xs sm:text-sm lg:text-base ${textSecondary} truncate mt-0.5`}>
+              {activeDoctor.specialty} • Dakar (GMT+0)
             </p>
           </div>
         </div>
 
         {/* View Switcher Buttons */}
-        <div className={`flex items-center p-1 rounded-xl border ${subBg} text-xs shrink-0 self-start md:self-auto`}>
+        <div className={`flex items-center p-1.5 rounded-xl border ${subBg} text-xs lg:text-sm shrink-0 self-start md:self-auto gap-1`}>
           <button
             onClick={() => setActiveTab('consultations')}
-            className={`px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 ${
+            className={`px-3.5 lg:px-4 py-2 rounded-lg font-bold transition flex items-center gap-2 ${
               activeTab === 'consultations'
-                ? 'bg-sky-600 text-white shadow'
+                ? 'bg-sky-600 text-white shadow-xs'
                 : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            <Stethoscope className="w-4 h-4" />
+            <Stethoscope className="w-4 h-4 lg:w-4.5 lg:h-4.5" />
             <span>Consultations ({myAppointments.length})</span>
           </button>
           <button
@@ -686,7 +712,7 @@ export const DoctorSpace: React.FC<DoctorSpaceProps> = ({
                                 src={prat.avatar} 
                                 alt={prat.name} 
                                 onError={(e) => {
-                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80';
+                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80';
                                 }}
                                 className="w-3.5 h-3.5 rounded-full object-cover" 
                               />

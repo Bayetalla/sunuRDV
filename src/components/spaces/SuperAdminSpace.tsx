@@ -25,6 +25,14 @@ import {
 import { useToast } from '../ui/Toast';
 import { getThemeTokens } from '../../utils/themeTokens';
 
+const DEFAULT_CLINIC_PHOTOS = [
+  'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=200&q=80',
+];
+
 interface SuperAdminSpaceProps {
   tenants: Tenant[];
   isDark: boolean;
@@ -51,7 +59,7 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
   const [newClinicPhone, setNewClinicPhone] = useState('33 824 00 12');
   const [newClinicAddress, setNewClinicAddress] = useState('Almadies, Dakar');
   const [newClinicType, setNewClinicType] = useState<TenantType>('medical');
-  const [newClinicLogo, setNewClinicLogo] = useState('🏥');
+  const [newClinicLogo, setNewClinicLogo] = useState(DEFAULT_CLINIC_PHOTOS[0]);
   const [newClinicPlan, setNewClinicPlan] = useState<'starter' | 'pro' | 'hospital'>('pro');
 
   const handleOnboardSubmit = (e: React.FormEvent) => {
@@ -87,7 +95,7 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
       onOnboardTenant(newTenant);
       showToast({
         type: 'success',
-        title: 'Clinique onboardée avec succès 🇸🇳',
+        title: 'Clinique onboardée avec succès',
         message: `${newTenant.name} (${newTenant.city}) a été créée et activée.`
       });
     }
@@ -105,47 +113,47 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
       {/* Top Banner Context */}
       <div className={`rounded-2xl p-4 sm:p-6 border ${cardBg} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
-          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-500 border border-purple-500/30 flex items-center justify-center text-2xl sm:text-3xl shrink-0">
-            👑
+          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-500 border border-purple-500/30 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${theme.badgePurple}`}>
+              <span className={`text-[10px] sm:text-xs lg:text-xs font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1 rounded-md border whitespace-nowrap shrink-0 ${theme.badgePurple}`}>
                 SuperAdmin SaaS
               </span>
-              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentGreen}`}>Master Level (Multi-tenant)</span>
+              <span className={`text-xs lg:text-sm font-mono whitespace-nowrap ${theme.accentGreen}`}>Master Level (Multi-tenant)</span>
             </div>
-            <h1 className={`text-lg sm:text-2xl font-black ${textPrimary} mt-1 truncate`}>
+            <h1 className={`text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${textPrimary} mt-1 truncate`}>
               Supervision des Établissements
             </h1>
-            <p className={`text-xs ${textSecondary} line-clamp-2`}>
+            <p className={`text-xs sm:text-sm lg:text-base ${textSecondary} line-clamp-2 mt-0.5`}>
               Monitoring des cliniques, abonnements SaaS mensuels/annuels en FCFA, queues WhatsApp/SMS et quotas de serveurs.
             </p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className={`flex items-center p-1.5 rounded-xl border ${subBg} text-xs overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0`}>
+        <div className={`flex items-center p-1.5 rounded-xl border ${subBg} text-xs lg:text-sm overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0 gap-1`}>
           <button
             onClick={() => setActiveTab('tenants')}
-            className={`px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'tenants' ? 'bg-purple-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3.5 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'tenants' ? 'bg-purple-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Cliniques ({tenants.length})
           </button>
           <button
             onClick={() => setActiveTab('subscriptions')}
-            className={`px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'subscriptions' ? 'bg-purple-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3.5 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'subscriptions' ? 'bg-purple-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Abonnements SaaS FCFA
           </button>
           <button
             onClick={() => setActiveTab('infrastructure')}
-            className={`px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 ${
-              activeTab === 'infrastructure' ? 'bg-purple-600 text-white font-bold' : `${textSecondary} hover:${textPrimary}`
+            className={`px-3.5 lg:px-4 py-2 rounded-lg font-semibold transition shrink-0 ${
+              activeTab === 'infrastructure' ? 'bg-purple-600 text-white font-bold shadow-xs' : `${textSecondary} hover:${textPrimary}`
             }`}
           >
             Infra & Queues
@@ -154,29 +162,29 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
       </div>
 
       {/* KPI Global SaaS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>Cliniques Actives au Sénégal</span>
-          <div className={`text-2xl font-black mt-1 ${textPrimary}`}>{tenants.length}</div>
-          <span className={`text-[10px] font-medium ${theme.accentGreen}`}>100% opérationnelles</span>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className={`p-4 sm:p-5 rounded-xl border ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>Cliniques Actives au Sénégal</span>
+          <div className={`text-2xl lg:text-3xl font-black font-mono tracking-tight mt-1.5 ${textPrimary}`}>{tenants.length}</div>
+          <span className={`text-[11px] lg:text-xs font-medium mt-1 inline-block ${theme.accentGreen}`}>100% opérationnelles</span>
         </div>
 
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>MRR SaaS (Revenu Mensuel)</span>
-          <div className="text-xl font-black font-mono mt-1 text-purple-600 dark:text-purple-400">150 000 FCFA</div>
-          <span className={`text-[10px] ${textSecondary}`}>3 x 50 000 FCFA/mois</span>
+        <div className={`p-4 sm:p-5 rounded-xl border ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>MRR SaaS (Revenu Mensuel)</span>
+          <div className="text-xl lg:text-2xl font-black font-mono tracking-tight mt-1.5 text-purple-600 dark:text-purple-400">150 000 FCFA</div>
+          <span className={`text-[11px] lg:text-xs mt-1 inline-block ${textSecondary}`}>3 x 50 000 FCFA/mois</span>
         </div>
 
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>Messages WhatsApp envoyés</span>
-          <div className={`text-2xl font-black font-mono mt-1 ${theme.accentGreen}`}>1 428</div>
-          <span className={`text-[10px] ${textSecondary}`}>Ce mois-ci (Cloud API)</span>
+        <div className={`p-4 sm:p-5 rounded-xl border ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>Messages WhatsApp envoyés</span>
+          <div className={`text-2xl lg:text-3xl font-black font-mono tracking-tight mt-1.5 ${theme.accentGreen}`}>1 428</div>
+          <span className={`text-[11px] lg:text-xs mt-1 inline-block ${textSecondary}`}>Ce mois-ci (Cloud API)</span>
         </div>
 
-        <div className={`p-4 rounded-xl border ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>Volume Wave / OM transité</span>
-          <div className={`text-xl font-black font-mono mt-1 ${theme.accentSky}`}>2 850 000 FCFA</div>
-          <span className={`text-[10px] ${theme.accentSky}`}>Acomptes de consultation</span>
+        <div className={`p-4 sm:p-5 rounded-xl border ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>Volume Wave / OM transité</span>
+          <div className={`text-xl lg:text-2xl font-black font-mono tracking-tight mt-1.5 ${theme.accentSky}`}>2 850 000 FCFA</div>
+          <span className={`text-[11px] lg:text-xs mt-1 inline-block ${theme.accentSky}`}>Acomptes de consultation</span>
         </div>
       </div>
 
@@ -198,7 +206,13 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
             {tenants.map((t) => (
               <div key={t.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className={`text-2xl p-2.5 rounded-xl border shrink-0 ${subBg}`}>{t.logo}</span>
+                  <div className={`w-12 h-12 rounded-xl overflow-hidden border shrink-0 bg-slate-800 flex items-center justify-center ${theme.borderSubtle}`}>
+                    {t.logo && t.logo.startsWith('http') ? (
+                      <img src={t.logo} alt={t.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-6 h-6 text-purple-400" />
+                    )}
+                  </div>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       <h4 className={`text-sm font-bold truncate ${textPrimary}`}>{t.name}</h4>
@@ -213,7 +227,7 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 justify-between sm:justify-end w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-700/30">
                   <span className="text-xs font-mono font-bold text-purple-600 dark:text-purple-400">50 000 FCFA/m</span>
                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${theme.badgeSuccess}`}>
-                    ✓ À jour
+                    À jour
                   </span>
                   <button 
                     onClick={() => {
@@ -397,18 +411,18 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={`font-semibold block mb-1 ${textPrimary}`}>Logo / Icône :</label>
+                  <label className={`font-semibold block mb-1 ${textPrimary}`}>Photo établissement :</label>
                   <div className="flex items-center gap-1.5">
-                    {['🏥', '🩺', '🦷', '🏨', '💊'].map((emoji) => (
+                    {DEFAULT_CLINIC_PHOTOS.map((photoUrl, idx) => (
                       <button
-                        key={emoji}
+                        key={idx}
                         type="button"
-                        onClick={() => setNewClinicLogo(emoji)}
-                        className={`text-lg p-1.5 rounded-lg border transition ${
-                          newClinicLogo === emoji ? 'border-purple-500 bg-purple-500/20' : 'border-slate-700/30'
+                        onClick={() => setNewClinicLogo(photoUrl)}
+                        className={`w-9 h-9 rounded-lg overflow-hidden border-2 transition ${
+                          newClinicLogo === photoUrl ? 'border-purple-500 ring-2 ring-purple-500/40 scale-105' : 'border-slate-700/50 opacity-70 hover:opacity-100'
                         }`}
                       >
-                        {emoji}
+                        <img src={photoUrl} alt="Aperçu" className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>

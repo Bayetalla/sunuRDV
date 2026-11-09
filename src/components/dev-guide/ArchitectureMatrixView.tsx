@@ -503,7 +503,7 @@ export const ArchitectureMatrixView: React.FC<{ isDark?: boolean }> = ({ isDark 
     setCopiedCode(true);
     showToast({
       type: 'success',
-      title: 'Routes copiées ! 🇸🇳',
+      title: 'Routes copiées avec succès !',
       message: 'Définition de route copiée dans le presse-papier.'
     });
     setTimeout(() => setCopiedCode(false), 2000);
@@ -704,7 +704,7 @@ export const ArchitectureMatrixView: React.FC<{ isDark?: boolean }> = ({ isDark 
                         trace l'<strong>ID du Tenant</strong>, le <strong>rôle utilisateur</strong>, l'IP cliente et journalise la latence vers <code className="text-emerald-300">storage/logs/laravel.log</code>.
                       </p>
                       <p className="text-[10px] text-purple-400 font-medium">
-                        🛡️ Enregistré dans <code>bootstrap/app.php</code> via <code>$middleware-&gt;append(LoggingMiddleware::class)</code>.
+                        Enregistré dans <code>bootstrap/app.php</code> via <code>$middleware-&gt;append(LoggingMiddleware::class)</code>.
                       </p>
                     </div>
 
@@ -724,7 +724,7 @@ export const ArchitectureMatrixView: React.FC<{ isDark?: boolean }> = ({ isDark 
                           <strong>Rôle :</strong> {mw.responsibility}
                         </p>
                         <p className="text-[10px] text-rose-400 font-medium">
-                          ⚠️ En cas d'échec : {mw.failureAction}
+                          En cas d'échec : {mw.failureAction}
                         </p>
                       </div>
                     ))}

@@ -300,7 +300,7 @@ export const HttpLoggingInspector: React.FC<{ isDark?: boolean }> = ({ isDark = 
     setCopiedLogJson(true);
     showToast({
       type: 'success',
-      title: 'JSON copié ! 📋',
+      title: 'JSON copié avec succès !',
       message: 'Format structuré compatible Monolog & CloudWatch/Datadog.'
     });
     setTimeout(() => setCopiedLogJson(false), 2000);
@@ -925,7 +925,7 @@ class LoggingMiddleware
                 setCopiedMiddlewareCode(true);
                 showToast({
                   type: 'success',
-                  title: 'Code PHP copié ! 🇸🇳',
+                  title: 'Code PHP copié avec succès !',
                   message: 'Prêt à coller dans app/Http/Middleware/LoggingMiddleware.php'
                 });
                 setTimeout(() => setCopiedMiddlewareCode(false), 2000);

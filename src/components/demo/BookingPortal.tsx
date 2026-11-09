@@ -23,7 +23,10 @@ import {
   Copy,
   Sparkles,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Building2,
+  Banknote,
+  Moon
 } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getThemeTokens } from '../../utils/themeTokens';
@@ -158,7 +161,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
     setOtpSent(true);
     showToast({
       type: 'info',
-      title: 'Code OTP SMS envoyé 🇸🇳',
+      title: 'Code OTP SMS envoyé',
       message: `Code temporaire envoyé au +221 ${cleanPhoneDigits}. Utilisez le code 4829 pour tester.`
     });
   };
@@ -259,22 +262,26 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
       {/* Clinic Header Profile */}
       <div className={`rounded-2xl p-5 sm:p-7 shadow-xl border transition flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${cardBg}`}>
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl sm:text-4xl shadow-inner shrink-0">
-            {tenant.logo}
+          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border border-emerald-500/30 shadow-md shrink-0 bg-slate-800 flex items-center justify-center">
+            {tenant.logo && tenant.logo.startsWith('http') ? (
+              <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" />
+            ) : (
+              <Building2 className="w-8 h-8 text-emerald-400" />
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className={`text-xl sm:text-2xl font-black ${textPrimary}`}>{tenant.name}</h1>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 border border-emerald-500/30">
-                Certifié Sénégal 🇸🇳
+              <h1 className={`text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${textPrimary}`}>{tenant.name}</h1>
+              <span className="text-[10px] sm:text-xs lg:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-md bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 whitespace-nowrap">
+                Établissement Agréé Sénégal
               </span>
             </div>
-            <p className={`text-xs mt-1 max-w-md ${textSecondary}`}>{tenant.tagline}</p>
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
-              <span className={`flex items-center gap-1 ${textSecondary}`}>
+            <p className={`text-xs sm:text-sm lg:text-base mt-1 max-w-xl ${textSecondary}`}>{tenant.tagline}</p>
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs lg:text-sm">
+              <span className={`flex items-center gap-1.5 ${textSecondary}`}>
                 <MapPin className="w-3.5 h-3.5 text-emerald-500" /> {tenant.address}, {tenant.city}
               </span>
-              <span className={`flex items-center gap-1 ${textSecondary}`}>
+              <span className={`flex items-center gap-1.5 font-mono ${textSecondary}`}>
                 <Phone className="w-3.5 h-3.5 text-emerald-500" /> {tenant.phone}
               </span>
             </div>
@@ -282,12 +289,12 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
         </div>
 
         {/* Dakar Opening Hours reminder */}
-        <div className={`p-3.5 rounded-xl border text-xs space-y-1 shrink-0 ${subBg}`}>
+        <div className={`p-3.5 lg:p-4 rounded-xl border text-xs lg:text-sm space-y-1 shrink-0 ${subBg}`}>
           <div className={`font-bold flex items-center gap-1.5 ${textPrimary}`}>
-            <Clock className="w-3.5 h-3.5 text-amber-500" /> Horaires Dakar :
+            <Clock className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-amber-500" /> Horaires Dakar :
           </div>
-          <div className={textSecondary}>Lun - Sam : {tenant.openingHours.start} - {tenant.openingHours.end}</div>
-          <div className="text-[11px] text-amber-500 font-medium italic">Pause Vendredi (Prière) : 13h00 - 15h00</div>
+          <div className={`${textSecondary} font-mono`}>Lun - Sam : {tenant.openingHours.start} - {tenant.openingHours.end}</div>
+          <div className="text-[11px] lg:text-xs text-amber-500 font-medium italic">Pause Vendredi (Prière) : 13h00 - 15h00</div>
         </div>
       </div>
 
@@ -511,7 +518,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
                         src={doc.avatar} 
                         alt={doc.name} 
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80';
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80';
                         }}
                         className="h-12 w-12 rounded-xl object-cover border border-slate-700 shrink-0" 
                       />
@@ -572,7 +579,8 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               {isFriday && (
                 <div className="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-xs text-amber-400 space-y-1 animate-fadeIn">
                   <div className="font-bold flex items-center gap-1.5">
-                    <span>🕌 Pause Prière du Vendredi (Dakar)</span>
+                    <Moon className="w-4 h-4 text-amber-400" />
+                    <span>Pause Prière du Vendredi (Dakar)</span>
                   </div>
                   <p className="text-[11px] text-amber-300/80 leading-relaxed">
                     Les créneaux de 13h00 à 15h00 sont automatiquement bloqués pour la grande prière du Djouma.
@@ -581,7 +589,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               )}
 
               <div className={`p-3.5 rounded-xl border text-xs space-y-1 ${subBg}`}>
-                <span className="font-semibold text-emerald-500">💡 Calendrier Sénégal :</span>
+                <span className="font-semibold text-emerald-500">Calendrier National (Sénégal) :</span>
                 <p className={textSecondary}>
                   Les jours fériés (Magal de Touba, Korité, Tabaski, Fête Nationale) sont bloqués. Vous recevrez un rappel SMS & WhatsApp J-1.
                 </p>
@@ -698,7 +706,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <div className={`border rounded-xl px-3 py-2.5 flex items-center text-xs font-mono font-bold text-emerald-500 shrink-0 ${subBg}`}>
-                    🇸🇳 +221
+                    +221
                   </div>
                   <input
                     type="text"
@@ -773,7 +781,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
                     }}
                     className="w-full sm:w-auto px-3 py-2 rounded-xl bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/25 text-xs font-semibold transition text-center"
                   >
-                    ⚡ Valider directement (4829)
+                    Valider directement (4829)
                   </button>
                 </div>
               </div>
@@ -879,8 +887,8 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-xl flex items-center justify-center text-lg ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
-                  💵
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                  <Banknote className="w-5 h-5 text-emerald-500" />
                 </div>
                 <div>
                   <h4 className={`text-xs font-bold ${textPrimary}`}>Règlement au comptoir (Sur place)</h4>
@@ -902,8 +910,8 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-black text-sm">
-                  🌊
+                <div className="h-10 w-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-black">
+                  <Smartphone className="w-5 h-5 text-sky-400" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -1010,8 +1018,14 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
                 <h4 className={`font-black text-sm ${textPrimary}`}>{tenant.name}</h4>
                 <p className={`text-[11px] ${textSecondary}`}>{tenant.address}, {tenant.city}</p>
               </div>
-              <div className="text-right">
-                <span className="text-3xl block">{tenant.logo}</span>
+              <div className="flex flex-col items-end gap-1">
+                <div className="w-10 h-10 rounded-xl overflow-hidden border border-emerald-500/30 bg-slate-800 flex items-center justify-center">
+                  {tenant.logo && tenant.logo.startsWith('http') ? (
+                    <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Building2 className="w-5 h-5 text-emerald-400" />
+                  )}
+                </div>
                 <span className="text-[9px] font-mono text-emerald-500 font-bold">BILLET OFFICIEL</span>
               </div>
             </div>
@@ -1147,7 +1161,7 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
           }`}>
             <div className="flex items-center justify-between border-b pb-3 border-slate-700/60">
               <div className="flex items-center gap-2">
-                <span className="text-xl">{paymentMethod === 'wave' ? '🌊' : '🍊'}</span>
+                <Smartphone className={`w-5 h-5 ${paymentMethod === 'wave' ? 'text-sky-400' : 'text-orange-400'}`} />
                 <h3 className="font-bold text-sm">
                   {paymentMethod === 'wave' ? 'Passerelle Sécurisée Wave Sénégal' : 'Validation Orange Money (#144#)'}
                 </h3>

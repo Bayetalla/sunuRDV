@@ -1174,10 +1174,10 @@ export default BookingWidget;`
 
             <div class="flex items-center gap-3">
                 <a href="{{ route('client.login') }}" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    👤 Espace Patient
+                    Espace Patient
                 </a>
                 <a href="{{ route('admin.dashboard') }}" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition">
-                    🛡️ Accès Clinique
+                    Accès Clinique
                 </a>
             </div>
         </div>
@@ -1407,7 +1407,7 @@ export default LiveQueueTicket;`
             </div>
 
             <div class="flex items-center gap-4">
-                <span class="text-xs text-slate-400">🇸🇳 +221 77 450 12 34</span>
+                <span class="text-xs text-slate-400">+221 77 450 12 34</span>
                 <form action="{{ route('client.logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="text-xs text-red-400 hover:text-red-300 font-semibold">
@@ -1661,19 +1661,19 @@ export default RealtimeAgendaToast;`
 
             <nav class="p-4 space-y-1.5 text-xs font-semibold">
                 <a href="{{ route('admin.agenda') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-emerald-600 text-white">
-                    📅 Agenda & Toasts
+                    Agenda & Toasts
                 </a>
                 <a href="{{ route('admin.queue') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
-                    👥 Salle d'Attente Direct
+                    Salle d'Attente Direct
                 </a>
                 <a href="{{ route('admin.practitioners') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
-                    🩺 Équipe Médicale
+                    Équipe Médicale
                 </a>
                 <a href="{{ route('admin.cash_register') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
-                    💰 Caisse & Acomptes Wave/OM
+                    Caisse & Acomptes Wave/OM
                 </a>
                 <a href="{{ route('admin.messages') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
-                    📱 Rappels SMS & WhatsApp
+                    Rappels SMS & WhatsApp
                 </a>
             </nav>
         </div>
@@ -1868,17 +1868,17 @@ class ManageMessageTemplates extends Component
 
         <div class="flex items-center gap-2 p-1 bg-slate-950 border border-slate-800 rounded-xl">
             <button wire:click="setChannel('whatsapp')" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 {{ $activeChannel === 'whatsapp' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white' }}">
-                💬 WhatsApp Cloud
+                WhatsApp Cloud
             </button>
             <button wire:click="setChannel('sms')" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 {{ $activeChannel === 'sms' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white' }}">
-                ✉️ SMS National Sénégal
+                SMS National Sénégal
             </button>
         </div>
     </div>
 
     @if (session()->has('success'))
         <div class="p-4 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-fadeIn">
-            ✓ {{ session('success') }}
+            {{ session('success') }}
         </div>
     @endif
 
@@ -1930,7 +1930,7 @@ class ManageMessageTemplates extends Component
 
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <button wire:click="saveTemplate" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-950/40">
-                        💾 Sauvegarder le modèle
+                        Sauvegarder le modèle
                     </button>
                 </div>
             </div>
@@ -1949,7 +1949,7 @@ class ManageMessageTemplates extends Component
                         {{ str_replace(['{patient_prenom}', '{patient_nom}', '{nom_medecin}', '{date_rdv}', '{heure_rdv}', '{nom_clinique}', '{lien_billet}', '{contact_clinique}'], ['Aminata', 'Diop', 'Dr. Sy', 'Mardi 28 Oct', '10h30', 'Clinique Keur Madior', 'https://sunu.sn/t/K9X2', '+221 33 820 12 34'], $bodyFr) }}
                     </div>
 
-                    <div class="text-[9px] text-slate-500 text-right">Dakar GMT+0 • Distribué ✓✓</div>
+                    <div class="text-[9px] text-slate-500 text-right">Dakar GMT+0 • Distribué</div>
                 </div>
             </div>
 
@@ -1963,7 +1963,7 @@ class ManageMessageTemplates extends Component
                     </button>
                 </div>
                 @if ($testStatus)
-                    <p class="text-[11px] text-emerald-400 font-medium">✓ {{ $testStatus }}</p>
+                    <p class="text-[11px] text-emerald-400 font-medium">{{ $testStatus }}</p>
                 @endif
             </div>
         </div>
@@ -2511,17 +2511,17 @@ class SenegalSmsService
     spaceLabel: "Documentation Complète",
     description: "Guide exhaustif d'installation, configuration et déploiement du projet Laravel 12 avec Livewire, Tailwind et React.",
     language: "markdown",
-    code: `# 🇸🇳 SunuRDV Platform - Laravel 12, Livewire 3, Tailwind CSS & React
+    code: `# SunuRDV Platform - Laravel 12, Livewire 3, Tailwind CSS & React
 
 Plateforme SaaS Multi-Tenant médicale pour la gestion des cliniques et la prise de rendez-vous en ligne au Sénégal.
 
 ---
 
-## 🏗️ Architecture & Séparation des 3 Espaces Utilisateurs
+## Architecture & Séparation des 3 Espaces Utilisateurs
 
 Le projet sépare strictement les accès en 3 espaces distincts :
 
-### 1. 🌍 Espace Public (\`routes/public.php\`)
+### 1. Espace Public (\`routes/public.php\`)
 * **Cible** : Nouveaux patients et visiteurs sans compte préalable.
 * **Fonctionnalités** :
   * Vitrine de la clinique via sous-domaine (\`https://madeleine.sunurdv.sn\`) ou slug.
@@ -2530,7 +2530,7 @@ Le projet sépare strictement les accès en 3 espaces distincts :
   * Vérification instantanée par **SMS OTP** (+221).
   * Acompte de réservation en FCFA via **Wave** et **Orange Money**.
 
-### 2. 👤 Espace Client / Patient (\`routes/client.php\`)
+### 2. Espace Client / Patient (\`routes/client.php\`)
 * **Cible** : Patients avec historique de soins.
 * **Fonctionnalités** :
   * Connexion sécurisée sans mot de passe par numéro de téléphone + OTP.
@@ -2538,7 +2538,7 @@ Le projet sépare strictement les accès en 3 espaces distincts :
   * **Ticket de file d'attente en direct React** (\`LiveQueueTicket.tsx\`) avec position dynamique en salle d'attente, compte à rebours et QR code.
   * Annulation et report autonome (règle 24h).
 
-### 3. 🛡️ Espace Admin Clinique & SuperAdmin (\`routes/admin.php\` & \`routes/superadmin.php\`)
+### 3. Espace Admin Clinique & SuperAdmin (\`routes/admin.php\` & \`routes/superadmin.php\`)
 * **Cible** : Directeurs, médecins, secrétaires et administrateurs SaaS.
 * **Fonctionnalités** :
   * Agenda interactif avec **composant Toast en temps réel** (\`RealtimeAgendaToast.tsx\`) avertissant à chaque confirmation ou arrivée de patient.
@@ -2547,7 +2547,7 @@ Le projet sépare strictement les accès en 3 espaces distincts :
 
 ---
 
-## 🚀 Guide de Démarrage Rapide
+## Guide de Démarrage Rapide
 
 \`\`\`bash
 # 1. Cloner ou décompresser l'archive zip
@@ -3281,7 +3281,7 @@ class ServiceManager extends Component
                             {{ $svc->category }}
                         </span>
                         <span class="text-xs font-mono font-bold text-sky-600 dark:text-sky-400">
-                            ⏱ {{ $svc->duration_minutes }} min
+                            {{ $svc->duration_minutes }} min
                         </span>
                     </div>
 
@@ -3330,11 +3330,11 @@ class ServiceManager extends Component
                         Bascule mon offre
                     </button>
                     <div class="flex items-center gap-1.5">
-                        <button wire:click="editService({{ $svc->id }})" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Modifier">
-                            ✏️
+                        <button wire:click="editService({{ $svc->id }})" class="px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Modifier">
+                            Modifier
                         </button>
-                        <button wire:click="deleteService({{ $svc->id }})" wire:confirm="Confirmer la suppression de cette prestation ?" class="p-2 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition" title="Supprimer">
-                            🗑️
+                        <button wire:click="deleteService({{ $svc->id }})" wire:confirm="Confirmer la suppression de cette prestation ?" class="px-2.5 py-1 text-xs rounded-lg border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition" title="Supprimer">
+                            Supprimer
                         </button>
                     </div>
                 </div>
@@ -3359,7 +3359,7 @@ class ServiceManager extends Component
                     <h2 class="text-base font-bold text-slate-900 dark:text-white">
                         {{ $editingServiceId ? 'Modifier la prestation médicale' : 'Créer un nouvel acte médical' }}
                     </h2>
-                    <button wire:click="$set('showModal', false)" class="text-slate-500 hover:text-slate-900 dark:hover:text-white">✕</button>
+                    <button wire:click="$set('showModal', false)" class="text-slate-500 hover:text-slate-900 dark:hover:text-white">&times;</button>
                 </div>
 
                 <form wire:submit="saveService" class="space-y-4">

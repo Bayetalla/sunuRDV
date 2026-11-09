@@ -267,7 +267,7 @@ export const Step1GuideView: React.FC<Step1GuideViewProps> = ({ isDark = true })
                 <pre>{cmd.command}</pre>
               </div>
 
-              <p className={`text-xs italic ${theme.textSecondary}`}>💡 {cmd.explanation}</p>
+              <p className={`text-xs italic ${theme.textSecondary}`}>{cmd.explanation}</p>
             </div>
           ))}
         </div>
@@ -464,7 +464,7 @@ export const Step1GuideView: React.FC<Step1GuideViewProps> = ({ isDark = true })
           <div>
             <div className={`font-semibold text-sm ${theme.textPrimary}`}>
               {completedCount === totalCount ? (
-                <span className="text-emerald-500 font-bold">🎉 Tout est en place pour valider l'Étape 1 !</span>
+                <span className="text-emerald-500 font-bold">Tout est en place pour valider l'Étape 1 !</span>
               ) : (
                 <span>Complétez les tests pour vous assurer que tout fonctionne en local.</span>
               )}

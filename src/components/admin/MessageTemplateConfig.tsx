@@ -30,7 +30,8 @@ import {
   CheckCircle2,
   FileText,
   Sliders,
-  Share2
+  Share2,
+  Building2
 } from 'lucide-react';
 import { getThemeTokens } from '../../utils/themeTokens';
 import { useToast } from '../ui/Toast';
@@ -165,7 +166,7 @@ export const MessageTemplateConfig: React.FC<MessageTemplateConfigProps> = ({
     setSaveSuccess(true);
     showToast({
       type: 'success',
-      title: 'Modèles de rappel sauvegardés ! 🇸🇳',
+      title: 'Modèles de rappel sauvegardés !',
       message: `La configuration des rappels automatiques pour ${tenant.name} est active en base.`
     });
     setTimeout(() => setSaveSuccess(false), 2500);
@@ -187,7 +188,7 @@ export const MessageTemplateConfig: React.FC<MessageTemplateConfigProps> = ({
       setLastTestedAt(new Date().toLocaleTimeString('fr-FR'));
       showToast({
         type: 'success',
-        title: `Message test ${activeChannel.toUpperCase()} envoyé ! 🚀`,
+        title: `Message test ${activeChannel.toUpperCase()} envoyé !`,
         message: `Envoyé avec succès vers ${testPhoneNumber} via la passerelle ${activeChannel === 'whatsapp' ? 'WhatsApp Cloud API' : 'Orange SMS Sénégal'}.`
       });
     }, 1200);
@@ -397,7 +398,7 @@ export const MessageTemplateConfig: React.FC<MessageTemplateConfigProps> = ({
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  🇫🇷 Français (Officiel)
+                  Français (Officiel)
                 </button>
                 <button
                   type="button"
@@ -408,7 +409,7 @@ export const MessageTemplateConfig: React.FC<MessageTemplateConfigProps> = ({
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <span>🇸🇳 Wolof</span>
+                  <span>Wolof</span>
                   <span className="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800/80 px-1 rounded">
                     Populaire
                   </span>
@@ -631,8 +632,12 @@ export const MessageTemplateConfig: React.FC<MessageTemplateConfigProps> = ({
                 <div className="bg-[#1f2c34] px-3.5 py-2.5 border-b border-[#2a3942] flex items-center justify-between text-white shadow-sm z-10">
                   <div className="flex items-center gap-2.5">
                     <div className="relative">
-                      <div className="h-9 w-9 rounded-full bg-emerald-600 flex items-center justify-center text-sm font-bold text-white shadow">
-                        {tenant.logo}
+                      <div className="h-9 w-9 rounded-full overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center text-sm font-bold text-white shadow shrink-0">
+                        {tenant.logo && tenant.logo.startsWith('http') ? (
+                          <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Building2 className="w-4 h-4 text-emerald-400" />
+                        )}
                       </div>
                       <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-400 rounded-full border-2 border-[#1f2c34]" />
                     </div>

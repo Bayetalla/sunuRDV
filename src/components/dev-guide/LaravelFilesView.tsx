@@ -77,7 +77,7 @@ export const LaravelFilesView: React.FC<LaravelFilesViewProps> = ({ isDark = tru
     setCopiedFile(true);
     showToast({
       type: 'success',
-      title: 'Code copié avec succès ! 🇸🇳',
+      title: 'Code copié avec succès !',
       message: `${activeFile.path} est prêt à être collé dans votre éditeur.`
     });
     setTimeout(() => setCopiedFile(false), 2000);
@@ -128,7 +128,7 @@ export const LaravelFilesView: React.FC<LaravelFilesViewProps> = ({ isDark = tru
 
     showToast({
       type: 'success',
-      title: 'Fichier complet Laravel 12 téléchargé 🇸🇳',
+      title: 'Fichier complet Laravel 12 téléchargé',
       message: 'Fichier unique consolidé avec l\'ensemble du code source.'
     });
   };
@@ -153,7 +153,7 @@ export const LaravelFilesView: React.FC<LaravelFilesViewProps> = ({ isDark = tru
 
       showToast({
         type: 'success',
-        title: 'Archive ZIP Laravel 12 générée ! 🚀',
+        title: 'Archive ZIP Laravel 12 générée avec succès',
         message: 'L\'archive sunurdv-laravel12-complet.zip est prête avec l\'arborescence complète.'
       });
     } catch {

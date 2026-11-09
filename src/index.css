@@ -3,11 +3,44 @@
 @theme {
   --color-slate-850: #141c2e;
   --color-slate-750: #243044;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 @layer base {
+  :root {
+    font-size: 14.5px;
+    --font-ui-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-ui-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  @media (min-width: 640px) {
+    :root {
+      font-size: 15px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      font-size: 16px;
+    }
+  }
+
+  @media (min-width: 1440px) {
+    :root {
+      font-size: 16.5px;
+    }
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
   html {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-ui-sans);
+    font-feature-settings: 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv11' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
     width: 100%;
@@ -16,17 +49,33 @@
   }
 
   body {
+    font-family: var(--font-ui-sans);
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+    line-height: 1.5;
+    letter-spacing: -0.011em;
     touch-action: manipulation;
     transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  code, pre, kbd, samp, .font-mono {
+    font-family: var(--font-ui-mono) !important;
+    font-feature-settings: 'calt' 1, 'zero' 1;
+    letter-spacing: -0.02em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
   }
 
   #root {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 }
 

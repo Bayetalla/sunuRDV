@@ -11,7 +11,7 @@ export const tenants: Tenant[] = [
     city: 'Dakar',
     phone: '+221 33 820 12 34',
     email: 'contact@keurmadior.sn',
-    logo: '🏥',
+    logo: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=200&q=80',
     accentColor: '#059669', // Emerald
     currency: 'FCFA',
     timezone: 'Africa/Dakar',
@@ -38,7 +38,7 @@ export const tenants: Tenant[] = [
     city: 'Dakar Plateau',
     phone: '+221 33 821 55 66',
     email: 'rdv@dentaireteranga.sn',
-    logo: '🦷',
+    logo: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=200&q=80',
     accentColor: '#0284c7', // Sky
     currency: 'FCFA',
     timezone: 'Africa/Dakar',
@@ -65,7 +65,7 @@ export const tenants: Tenant[] = [
     city: 'Dakar',
     phone: '+221 77 500 88 99',
     email: 'spa@ebene-ngor.sn',
-    logo: '✨',
+    logo: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=200&q=80',
     accentColor: '#d97706', // Amber
     currency: 'FCFA',
     timezone: 'Africa/Dakar',
@@ -89,7 +89,7 @@ export const practitioners: Practitioner[] = [
     name: 'Dr. Fatou Ndiaye',
     title: 'Docteur',
     specialty: 'Médecine Générale & Diabétologie',
-    avatar: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80',
+    avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80',
     phone: '+221 77 645 12 90',
     email: 'f.ndiaye@keurmadior.sn',
     room: 'Bureau 102 - 1er étage',
@@ -113,7 +113,7 @@ export const practitioners: Practitioner[] = [
     name: 'Dr. Aïssatou Ba',
     title: 'Pr.',
     specialty: 'Cardiologie & Hypertension',
-    avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
     phone: '+221 76 890 12 34',
     email: 'a.ba@keurmadior.sn',
     room: 'Bureau 201 - 2ème étage',
@@ -414,35 +414,35 @@ export const initialMessageTemplates: MessageTemplate[] = [
     description: "Message riche complet avec QR code, itinéraire Dakar et détails du praticien.",
     bodyFr: `Bonjour *{patient_prenom} {patient_nom}*,
 
-Votre rendez-vous chez *{nom_clinique}* est bien confirmé ! ✅
+Votre rendez-vous chez *{nom_clinique}* est bien confirmé.
 
-🩺 *Médecin :* {nom_medecin} ({specialite})
-📅 *Date :* {date_rdv}
-⏰ *Heure :* {heure_rdv}
-📍 *Adresse :* {adresse_clinique}
-💳 *Acompte réglé :* {montant_acompte}
+*Médecin :* {nom_medecin} ({specialite})
+*Date :* {date_rdv}
+*Heure :* {heure_rdv}
+*Adresse :* {adresse_clinique}
+*Acompte réglé :* {montant_acompte}
 
 Consultez votre pass d'accès numérique et QR code d'enregistrement :
-👉 {lien_billet}
+Lien d'accès : {lien_billet}
 
 Pour tout empêchement ou report :
-📞 {contact_clinique} | Annulation autonome : {lien_annulation}
+Tél : {contact_clinique} | Annulation : {lien_annulation}
 
-_Merci de votre confiance et bonne santé !_`,
+_Merci de votre confiance et bonne santé._`,
     bodyWolof: `Salam *{patient_prenom} {patient_nom}*,
 
-Sa rendez-vous ci *{nom_clinique}* dëppoo na tey ! ✅
+Sa rendez-vous ci *{nom_clinique}* dëppoo na tey.
 
-🩺 *Praticien :* {nom_medecin} ({specialite})
-📅 *Bes :* {date_rdv}
-⏰ *Waxtu :* {heure_rdv}
-📍 *Fi nu nekk :* {adresse_clinique}
+*Praticien :* {nom_medecin} ({specialite})
+*Bes :* {date_rdv}
+*Waxtu :* {heure_rdv}
+*Fi nu nekk :* {adresse_clinique}
 
 Jëlal sa pass numérique ak QR code :
-👉 {lien_billet}
+Lien : {lien_billet}
 
 Bu amee lu ko tée :
-📞 {contact_clinique} | {lien_annulation}`,
+Tél : {contact_clinique} | {lien_annulation}`,
     languageMode: 'fr',
     isActive: true,
     sendTimingOffsetMinutes: 0,
@@ -463,7 +463,7 @@ Bu amee lu ko tée :
 
 Ceci est un rappel pour votre consultation de demain avec *{nom_medecin}* à *{heure_rdv}*.
 
-📋 *À ne pas oublier :*
+*À ne pas oublier :*
 • Votre carnet de santé ou dossier médical
 • Vos ordonnances en cours ou analyses récentes
 • Votre pass digital : {lien_billet}
@@ -473,7 +473,7 @@ En cas d'empêchement, merci de prévenir l'accueil au *{contact_clinique}* ou v
 
 Fàttali la sa rdv ëllëg ak *{nom_medecin}* ci *{heure_rdv}*.
 
-📋 *Bul fàtte yóbbaale :*
+*Bul fàtte yóbbaale :*
 • Sa karnet wér-gi-yaram walla analiis yi
 • Sa pass digital : {lien_billet}
 
@@ -497,7 +497,7 @@ Bu amee lu xawa tée, wooteel ci *{contact_clinique}*. Jërëjëf !`,
     bodyFr: `Bonjour *{patient_prenom}*, votre rendez-vous du *{date_rdv}* à *{heure_rdv}* chez *{nom_clinique}* a bien été annulé.
 
 Pour réserver un nouveau créneau disponible :
-👉 https://sunu.sn/e/{tenant_slug}
+https://sunu.sn/e/{tenant_slug}
 
 Contact direct : {contact_clinique}`,
     languageMode: 'fr',
@@ -523,7 +523,7 @@ Toute l'équipe de *{nom_clinique}* espère que votre consultation avec *{nom_me
 Votre santé et votre confort nous tiennent à cœur.
 N'hésitez pas à nous contacter au *{contact_clinique}* pour tout renseignement sur vos ordonnances.
 
-_Prenez bien soin de vous !_ 🌿`,
+_Prenez bien soin de vous._`,
     languageMode: 'fr',
     isActive: false,
     sendTimingOffsetMinutes: 1440,

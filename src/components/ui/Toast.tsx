@@ -128,7 +128,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 <span className="font-extrabold text-sm tracking-tight text-white">{toast.title}</span>
                 {toast.type === 'appointment' && (
                   <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 uppercase">
-                    🇸🇳 Temps Réel
+                    Temps Réel
                   </span>
                 )}
               </div>

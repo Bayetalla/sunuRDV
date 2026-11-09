@@ -26,7 +26,9 @@ import {
   X,
   Radio,
   CheckCircle2,
-  CalendarCheck2
+  CalendarCheck2,
+  Building2,
+  ShieldAlert
 } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getThemeTokens } from '../../utils/themeTokens';
@@ -183,7 +185,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
     // Also trigger global toast notification
     showToast({
       type: 'appointment',
-      title: 'Nouveau Rendez-vous Confirmé ! 🇸🇳',
+      title: 'Nouveau Rendez-vous Confirmé !',
       message: `${apt.patientName} • ${apt.timeSlot} avec ${doc.title} ${doc.name}. Acompte : ${apt.depositPaidXOF.toLocaleString('fr-FR')} FCFA (${apt.paymentMethod.toUpperCase()}).`,
       duration: 6000,
       action: {
@@ -275,7 +277,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
   const triggerManualWhatsAppReminder = (apt: Appointment) => {
     showToast({
       type: 'whatsapp',
-      title: 'Rappel WhatsApp 🇸🇳 envoyé',
+      title: 'Rappel WhatsApp envoyé',
       message: `Message transmis à ${apt.patientName} (${apt.patientPhone}). Taux de lecture estimé à 98%.`
     });
   };
@@ -375,7 +377,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-400 text-slate-950 tracking-wider">
-                    🇸🇳 Confirmation en temps réel
+                    Confirmation en temps réel
                   </span>
                   <span className="text-xs font-mono text-emerald-300">
                     Réf : {activeRealtimeAlert.appointment.reference}
@@ -444,84 +446,88 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
       {/* Top Clinic Context Header */}
       <div className={`rounded-2xl p-4 sm:p-6 border transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 ${cardBg}`}>
         <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
-          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl sm:text-3xl shrink-0">
-            {tenant.logo}
+          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl overflow-hidden border border-amber-500/30 shadow-md shrink-0 bg-slate-800 flex items-center justify-center">
+            {tenant.logo && tenant.logo.startsWith('http') ? (
+              <img src={tenant.logo} alt={tenant.name} className="w-full h-full object-cover" />
+            ) : (
+              <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${theme.badgeWarning}`}>
+              <span className={`text-[10px] sm:text-xs lg:text-xs font-bold uppercase tracking-wider px-2.5 sm:px-3 py-1 rounded-md border whitespace-nowrap shrink-0 ${theme.badgeWarning}`}>
                 Réception & Guichet
               </span>
-              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentGreen}`}>Dakar (GMT+0) • FCFA</span>
+              <span className={`text-xs lg:text-sm font-mono whitespace-nowrap ${theme.accentGreen}`}>Dakar (GMT+0) • FCFA</span>
             </div>
-            <h1 className={`text-lg sm:text-2xl font-black ${textPrimary} mt-1 truncate`}>
+            <h1 className={`text-xl sm:text-2xl lg:text-3xl font-black tracking-tight ${textPrimary} mt-1 truncate`}>
               {tenant.name}
             </h1>
-            <p className={`text-xs ${textSecondary} line-clamp-2`}>
+            <p className={`text-xs sm:text-sm lg:text-base ${textSecondary} line-clamp-2 mt-0.5`}>
               Gestion des flux physiques & téléphoniques +221, file d'attente et relances WhatsApp
             </p>
           </div>
         </div>
 
         {/* Sub Navigation Tabs */}
-        <div className={`flex items-center p-1.5 rounded-xl border text-xs gap-1 overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0 ${subBg}`}>
+        <div className={`flex items-center p-1.5 rounded-xl border text-xs lg:text-sm gap-1 overflow-x-auto no-scrollbar w-full md:w-auto -mx-1 px-1 sm:mx-0 sm:px-0 ${subBg}`}>
           <button
             onClick={() => setActiveSubTab('agenda')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition flex items-center gap-2 shrink-0 ${
               activeSubTab === 'agenda' 
                 ? 'bg-amber-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            <Calendar className="w-3.5 h-3.5" />
+            <Calendar className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
             <span>Agenda ({appointments.length})</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('receptionist')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition flex items-center gap-2 shrink-0 ${
               activeSubTab === 'receptionist' 
                 ? 'bg-amber-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            <PhoneCall className="w-3.5 h-3.5" />
+            <PhoneCall className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
             <span>Guichet & Appel</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('queue')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition flex items-center gap-2 shrink-0 ${
               activeSubTab === 'queue' 
                 ? 'bg-sky-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
+            <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
             <span>Salle d'attente ({inQueueCount})</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('notifications')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition flex items-center gap-2 shrink-0 ${
               activeSubTab === 'notifications' 
                 ? 'bg-emerald-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            <MessageSquare className="w-3.5 h-3.5" />
+            <MessageSquare className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
             <span>WhatsApp / SMS</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('holidays')}
-            className={`px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5 shrink-0 ${
+            className={`px-3 lg:px-4 py-2 lg:py-2.5 rounded-lg font-medium transition flex items-center gap-2 shrink-0 ${
               activeSubTab === 'holidays' 
                 ? 'bg-purple-600 text-white font-bold shadow-sm' 
                 : `${textSecondary} hover:${textPrimary}`
             }`}
           >
-            <CalendarCheck className="w-3.5 h-3.5" />
+            <CalendarCheck className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
             <span>Fêtes & Jours fériés</span>
           </button>
         </div>
@@ -544,10 +550,10 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className={`text-sm sm:text-base font-bold ${textPrimary}`}>
+                  <h2 className={`text-base sm:text-lg lg:text-xl font-bold tracking-tight ${textPrimary}`}>
                     Recherche Globale de Patients
                   </h2>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                  <span className={`text-xs lg:text-sm px-2.5 py-0.5 rounded-full font-mono font-bold ${
                     searchQuery.trim() 
                       ? 'bg-amber-500 text-white' 
                       : isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'
@@ -555,22 +561,22 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                     {searchQuery.trim() ? `${filteredAppointments.length} résultat(s)` : `${appointments.length} patients`}
                   </span>
                 </div>
-                <p className={`text-[11px] ${textSecondary}`}>
+                <p className={`text-xs lg:text-sm ${textSecondary} mt-0.5`}>
                   Filtrage instantané par nom, prénom, numéro de téléphone (+221, 77, 78, 76...) ou référence RDV.
                 </p>
               </div>
             </div>
 
             {/* Quick status filters */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs lg:text-sm">
               {(['all', 'confirmed', 'arrived', 'in_progress', 'completed'] as const).map((st) => (
                 <button
                   key={`global-filter-${st}`}
                   type="button"
                   onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs lg:text-sm font-semibold whitespace-nowrap transition ${
                     statusFilter === st
-                      ? 'bg-amber-600 text-white shadow-xs'
+                      ? 'bg-amber-600 text-white shadow-xs font-bold'
                       : `${subBg} ${textSecondary} hover:${textPrimary}`
                   }`}
                 >
@@ -593,7 +599,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
               placeholder="Tapez un nom (ex: Aminata, Mamadou...) ou un numéro (ex: 77 450, 78..., 76...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full rounded-xl pl-11 pr-24 py-3 text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-amber-500 transition shadow-inner ${inputBg}`}
+              className={`w-full rounded-xl pl-11 pr-24 py-3 lg:py-3.5 text-sm lg:text-base font-medium border focus:outline-none focus:ring-2 focus:ring-amber-500 transition shadow-inner ${inputBg}`}
             />
             
             <div className="absolute right-2.5 flex items-center gap-1.5">
@@ -801,33 +807,33 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
       </section>
 
       {/* KPI Stats Cards with soft hover feedback */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className={`p-4 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>RDV Aujourd'hui</span>
-          <div className={`text-2xl font-black mt-1 ${textPrimary}`}>{appointments.length}</div>
-          <span className={`text-[10px] font-medium ${theme.accentGreen}`}>Planning du 30 Septembre</span>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className={`p-4 sm:p-5 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>RDV Aujourd'hui</span>
+          <div className={`text-2xl lg:text-3xl font-black font-mono tracking-tight mt-1.5 ${textPrimary}`}>{appointments.length}</div>
+          <span className={`text-[11px] lg:text-xs font-medium mt-1 inline-block ${theme.accentGreen}`}>Planning du 30 Septembre</span>
         </div>
 
-        <div className={`p-4 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>Taux de présence</span>
-          <div className={`text-2xl font-black mt-1 ${theme.accentGreen}`}>{presenceRate}%</div>
-          <span className={`text-[10px] ${textSecondary}`}>Rappels WhatsApp actifs</span>
+        <div className={`p-4 sm:p-5 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>Taux de présence</span>
+          <div className={`text-2xl lg:text-3xl font-black font-mono tracking-tight mt-1.5 ${theme.accentGreen}`}>{presenceRate}%</div>
+          <span className={`text-[11px] lg:text-xs mt-1 inline-block ${textSecondary}`}>Rappels WhatsApp actifs</span>
         </div>
 
-        <div className={`p-4 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>Total Facturation</span>
-          <div className={`text-xl font-black font-mono mt-1 ${textPrimary}`}>
-            {totalAmountToday.toLocaleString('fr-FR')} FCFA
+        <div className={`p-4 sm:p-5 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>Total Facturation</span>
+          <div className={`text-xl lg:text-2xl font-black font-mono tracking-tight mt-1.5 ${textPrimary}`}>
+            {totalAmountToday.toLocaleString('fr-FR')} <span className="text-xs lg:text-sm font-normal text-slate-400">FCFA</span>
           </div>
-          <span className={`text-[10px] ${textSecondary}`}>Honoraires des actes</span>
+          <span className={`text-[11px] lg:text-xs mt-1 inline-block ${textSecondary}`}>Honoraires des actes</span>
         </div>
 
-        <div className={`p-4 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
-          <span className={`text-[11px] font-medium ${textSecondary}`}>Acomptes Wave & OM</span>
-          <div className={`text-xl font-black font-mono mt-1 ${theme.accentSky}`}>
-            {totalDepositsToday.toLocaleString('fr-FR')} FCFA
+        <div className={`p-4 sm:p-5 rounded-xl border transition hover:-translate-y-0.5 hover:shadow-md ${cardBg}`}>
+          <span className={`text-xs lg:text-sm font-semibold ${textSecondary}`}>Acomptes Wave & OM</span>
+          <div className={`text-xl lg:text-2xl font-black font-mono tracking-tight mt-1.5 ${theme.accentSky}`}>
+            {totalDepositsToday.toLocaleString('fr-FR')} <span className="text-xs lg:text-sm font-normal text-slate-400">FCFA</span>
           </div>
-          <span className={`text-[10px] font-medium ${theme.accentSky}`}>Sécurisés en amont</span>
+          <span className={`text-[11px] lg:text-xs font-medium mt-1 inline-block ${theme.accentSky}`}>Sécurisés en amont</span>
         </div>
       </div>
 
@@ -850,7 +856,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                 title="Simuler un patient confirmant un rendez-vous sur le portail public avec acompte Wave"
               >
                 <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-200" />
-                <span>⚡ Simuler RDV en ligne entrant (Temps Réel)</span>
+                <span>Simuler RDV en ligne entrant (Temps Réel)</span>
               </button>
 
               {/* Search bar inside agenda */}
@@ -937,17 +943,17 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                           <span className={`text-xs font-mono shrink-0 ${textSecondary}`}>{apt.patientPhone}</span>
                           {apt.source === 'online' && (
                             <span className={`text-[10px] px-2 py-0.5 rounded-full border ${theme.badgeSuccess}`}>
-                              🌐 En ligne Wave
+                              En ligne (Wave)
                             </span>
                           )}
                           {apt.source === 'receptionist_phone' && (
                             <span className={`text-[10px] px-2 py-0.5 rounded-full border ${theme.badgeWarning}`}>
-                              📞 Appel
+                              Appel téléphonique
                             </span>
                           )}
                           {apt.source === 'receptionist_walkin' && (
                             <span className={`text-[10px] px-2 py-0.5 rounded-full border ${theme.badgePurple}`}>
-                              🏢 Guichet
+                              Guichet / Accueil
                             </span>
                           )}
                         </div>
@@ -1059,24 +1065,26 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                 <button
                   type="button"
                   onClick={() => setSource('receptionist_phone')}
-                  className={`flex-1 py-2.5 rounded-xl font-bold border transition ${
+                  className={`flex-1 py-2.5 rounded-xl font-bold border transition flex items-center justify-center gap-1.5 ${
                     source === 'receptionist_phone'
                       ? 'bg-amber-600 text-white border-amber-500 shadow-sm'
                       : `${subBg} ${textSecondary}`
                   }`}
                 >
-                  📞 Appel téléphonique
+                  <Phone className="w-4 h-4" />
+                  <span>Appel téléphonique</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSource('receptionist_walkin')}
-                  className={`flex-1 py-2.5 rounded-xl font-bold border transition ${
+                  className={`flex-1 py-2.5 rounded-xl font-bold border transition flex items-center justify-center gap-1.5 ${
                     source === 'receptionist_walkin'
                       ? 'bg-purple-600 text-white border-purple-500 shadow-sm'
                       : `${subBg} ${textSecondary}`
                   }`}
                 >
-                  🏢 Guichet / Sur place
+                  <Building2 className="w-4 h-4" />
+                  <span>Guichet / Sur place</span>
                 </button>
               </div>
             </div>
@@ -1218,9 +1226,10 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                       <p className={`text-[11px] ${textSecondary}`}>{a.notes || 'Arrivé à l’accueil'}</p>
                       <button
                         onClick={() => handleAdvanceStatus(a.id, a.status)}
-                        className="w-full py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold transition shadow-xs"
+                        className="w-full py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold transition shadow-xs flex items-center justify-center gap-1.5"
                       >
-                        Appeler en consultation 🔔
+                        <Bell className="w-3.5 h-3.5" />
+                        <span>Appeler en consultation</span>
                       </button>
                     </div>
                   ))}
@@ -1247,9 +1256,10 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                       </div>
                       <button
                         onClick={() => handleAdvanceStatus(a.id, a.status)}
-                        className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition shadow-xs"
+                        className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition shadow-xs flex items-center justify-center gap-1.5"
                       >
-                        Finaliser la consultation ✓
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Finaliser la consultation</span>
                       </button>
                     </div>
                   ))}
@@ -1272,7 +1282,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                     <div key={a.id} className={`p-3 rounded-xl border space-y-1 ${cardBg}`}>
                       <div className="flex justify-between items-start">
                         <span className={`font-medium text-xs ${textPrimary}`}>{a.patientName}</span>
-                        <span className={`text-[10px] font-bold ${theme.accentGreen}`}>✓ Payé</span>
+                        <span className={`text-[10px] font-bold ${theme.accentGreen}`}>Payé</span>
                       </div>
                       <p className={`text-[10px] ${textSecondary}`}>{a.amountXOF.toLocaleString('fr-FR')} FCFA</p>
                     </div>
@@ -1313,7 +1323,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                   whatsappLang === 'wo' ? 'bg-emerald-600 text-white shadow-xs' : textSecondary
                 }`}
               >
-                Wolof 🇸🇳
+                Wolof
               </button>
             </div>
           </div>
@@ -1420,8 +1430,9 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
                   {h.nameWolof && <p className={`text-[11px] italic ${textSecondary}`}>Wolof : {h.nameWolof}</p>}
                 </div>
 
-                <div className="text-[11px] text-rose-500 font-semibold flex items-center gap-1">
-                  <span>🔒 Cabinet fermé aux réservations</span>
+                <div className="text-[11px] text-rose-500 font-semibold flex items-center gap-1.5">
+                  <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+                  <span>Cabinet fermé aux réservations</span>
                 </div>
               </div>
             ))}

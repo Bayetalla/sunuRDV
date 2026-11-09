@@ -214,14 +214,14 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className={`text-base sm:text-lg font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`text-base sm:text-lg lg:text-xl font-black tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 SunuRDV
               </span>
-              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 shrink-0">
+              <span className="text-[9px] lg:text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 shrink-0">
                 Sénégal
               </span>
             </div>
-            <p className={`text-[10px] sm:text-xs truncate max-w-[120px] xs:max-w-[170px] sm:max-w-none ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className={`text-[10px] sm:text-xs lg:text-sm truncate max-w-[120px] xs:max-w-[170px] sm:max-w-none ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Cliniques, cabinets & SaaS multi-tenant
             </p>
           </div>
@@ -233,49 +233,49 @@ export const Header: React.FC<HeaderProps> = ({
         }`}>
           <button
             onClick={() => setCurrentTab('demo')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all ${
               currentTab === 'demo'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/40'
                 : isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-white'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Sparkles className="w-4 h-4" />
             <span>Démo Live Espaces</span>
           </button>
 
           <button
             onClick={() => setCurrentTab('laravel-files')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all ${
               currentTab === 'laravel-files'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/40'
                 : isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-white'
             }`}
           >
-            <FolderTree className="w-3.5 h-3.5" />
-            <span>Fichiers Laravel 12 🇸🇳</span>
+            <FolderTree className="w-4 h-4" />
+            <span>Fichiers Laravel 12</span>
           </button>
 
           <button
             onClick={() => setCurrentTab('dev-guide')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all ${
               currentTab === 'dev-guide'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-900/40'
                 : isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-white'
             }`}
           >
-            <Code2 className="w-3.5 h-3.5" />
+            <Code2 className="w-4 h-4" />
             <span>Guide Étape 1</span>
           </button>
 
           <button
             onClick={() => setCurrentTab('roadmap')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all ${
               currentTab === 'roadmap'
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40'
                 : isDark ? 'text-slate-300 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-white'
             }`}
           >
-            <BookOpen className="w-3.5 h-3.5" />
+            <BookOpen className="w-4 h-4" />
             <span>Roadmap (17 Étapes)</span>
           </button>
         </nav>
@@ -324,13 +324,19 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Active Clinic quick badge */}
               <div 
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={`hidden md:flex items-center gap-1.5 border rounded-lg px-2 py-1 text-xs cursor-pointer select-none transition ${
+                className={`hidden md:flex items-center gap-2 border rounded-lg px-2.5 py-1 text-xs cursor-pointer select-none transition ${
                   isDark ? 'bg-slate-800 border-slate-700 hover:border-slate-600 text-white' : 'bg-slate-100 border-slate-300 hover:border-slate-400 text-slate-900'
                 }`}
                 title={`${activeTenant.name} (${activeTenant.city})`}
               >
-                <span className="text-sm">{activeTenant.logo}</span>
-                <span className="max-w-[100px] truncate font-medium">
+                <div className="w-5 h-5 rounded overflow-hidden shrink-0 bg-slate-700 flex items-center justify-center">
+                  {activeTenant.logo && activeTenant.logo.startsWith('http') ? (
+                    <img src={activeTenant.logo} alt={activeTenant.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+                  )}
+                </div>
+                <span className="max-w-[120px] truncate font-medium">
                   {activeTenant.name}
                 </span>
               </div>
@@ -364,9 +370,13 @@ export const Header: React.FC<HeaderProps> = ({
                               : isDark ? 'hover:bg-slate-800 text-slate-300 hover:text-white' : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900'
                           }`}
                         >
-                          <span className={`text-xl p-1 rounded-lg border shrink-0 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-200'}`}>
-                            {t.logo}
-                          </span>
+                          <div className={`w-8 h-8 rounded-lg overflow-hidden border shrink-0 bg-slate-800 flex items-center justify-center ${isDark ? 'border-slate-700' : 'border-slate-300'}`}>
+                            {t.logo && t.logo.startsWith('http') ? (
+                              <img src={t.logo} alt={t.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Building2 className="w-4 h-4 text-emerald-400" />
+                            )}
+                          </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-1">
                               <span className="font-bold truncate">{t.name}</span>
@@ -403,7 +413,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <div className={`p-2 text-[10px] flex items-center justify-between ${isDark ? 'bg-slate-950/90 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
                   <span>Routing: <code className="text-emerald-500">/e/{activeTenant.slug}</code></span>
-                  <span>Sénégal 🇸🇳</span>
+                  <span>Sénégal (Dakar GMT+0)</span>
                 </div>
               </div>
             )}
@@ -412,13 +422,13 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Sub-Bar: Distinct Role/Space Switcher (Patient, Reception, Doctor, Clinic Admin, Superadmin) */}
-      <div className={`border-t px-3 sm:px-4 py-2 overflow-x-auto no-scrollbar ${isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs min-w-max">
-          <div className="flex items-center gap-2">
-            <span className={`text-[11px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+      <div className={`border-t px-3 sm:px-6 py-2 overflow-x-auto no-scrollbar ${isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+        <div className="max-w-7xl mx-auto flex flex-wrap md:flex-nowrap items-center justify-between gap-3 text-xs lg:text-sm w-full">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <span className={`text-[11px] lg:text-xs font-bold uppercase tracking-wider shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
               Espace actif :
             </span>
-            <div className={`flex items-center p-0.5 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'}`}>
+            <div className={`flex items-center p-1 rounded-xl border flex-wrap sm:flex-nowrap gap-1 ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-xs'}`}>
               {spacesList.map((space) => {
                 const isActive = currentSpace === space.id;
                 return (
@@ -428,10 +438,10 @@ export const Header: React.FC<HeaderProps> = ({
                       setCurrentSpace(space.id);
                       if (currentTab !== 'demo') setCurrentTab('demo');
                     }}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    className={`flex items-center gap-1.5 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg text-xs lg:text-sm font-semibold transition shrink-0 ${
                       isActive 
-                        ? `${space.color} text-white shadow-sm` 
-                        : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                        ? `${space.color} text-white shadow-sm font-bold` 
+                        : isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800/60' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                     }`}
                   >
                     {space.icon}
@@ -442,9 +452,9 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-[11px]">
-            <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>URL Laravel :</span>
-            <code className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded font-mono font-bold border border-emerald-500/20">
+          <div className="flex items-center gap-2 text-[11px] lg:text-xs shrink-0">
+            <span className={isDark ? 'text-slate-400' : 'text-slate-500 font-medium'}>Routeur SaaS :</span>
+            <code className="bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-md font-mono font-bold border border-emerald-500/20 text-xs lg:text-sm tracking-tight">
               {currentSpace === 'patient' && `/e/${activeTenant.slug}`}
               {currentSpace === 'reception' && `/e/${activeTenant.slug}/reception`}
               {currentSpace === 'doctor' && `/e/${activeTenant.slug}/praticien`}
@@ -504,7 +514,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => { setCurrentTab('laravel-files'); setIsMobileMenuOpen(false); }}
                 className={`py-2 rounded-lg text-xs font-bold ${currentTab === 'laravel-files' ? 'bg-emerald-600 text-white' : isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-700'}`}
               >
-                Laravel 12 (3 Espaces) 🇸🇳
+                Laravel 12 (3 Espaces)
               </button>
               <button
                 onClick={() => { setCurrentTab('dev-guide'); setIsMobileMenuOpen(false); }}

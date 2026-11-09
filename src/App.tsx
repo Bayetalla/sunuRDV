@@ -201,7 +201,7 @@ export default function App() {
                           : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      👤 Patient
+                      Patient
                     </button>
                     <button
                       onClick={() => setCurrentSpace('reception')}
@@ -211,7 +211,7 @@ export default function App() {
                           : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      📞 Guichet
+                      Guichet
                     </button>
                     <button
                       onClick={() => setCurrentSpace('doctor')}
@@ -221,7 +221,7 @@ export default function App() {
                           : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      🩺 Médecin
+                      Médecin
                     </button>
                     <button
                       onClick={() => setCurrentSpace('clinic_admin')}
@@ -231,7 +231,7 @@ export default function App() {
                           : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      ⚙️ Admin
+                      Admin
                     </button>
                     <button
                       onClick={() => setCurrentSpace('saas_superadmin')}
@@ -241,7 +241,7 @@ export default function App() {
                           : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      👑 SuperAdmin
+                      SuperAdmin
                     </button>
                   </div>
                 </div>
