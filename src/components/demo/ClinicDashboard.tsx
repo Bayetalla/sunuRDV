@@ -350,7 +350,7 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fadeIn">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-fadeIn pb-12 sm:pb-6">
       {/* ============================================================== */}
       {/* REAL-TIME TOAST NOTIFICATION COMPONENT IN CLINIC DASHBOARD     */}
       {/* ============================================================== */}
@@ -442,22 +442,22 @@ export const ClinicDashboard: React.FC<ClinicDashboardProps> = ({
       )}
 
       {/* Top Clinic Context Header */}
-      <div className={`rounded-2xl p-6 border transition flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${cardBg}`}>
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-3xl shrink-0">
+      <div className={`rounded-2xl p-4 sm:p-6 border transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 ${cardBg}`}>
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
+          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl sm:text-3xl shrink-0">
             {tenant.logo}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${theme.badgeWarning}`}>
-                Espace Réception & Guichet
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${theme.badgeWarning}`}>
+                Réception & Guichet
               </span>
-              <span className={`text-[10px] font-mono ${theme.accentGreen}`}>Dakar (GMT+0) • FCFA</span>
+              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentGreen}`}>Dakar (GMT+0) • FCFA</span>
             </div>
-            <h1 className={`text-xl sm:text-2xl font-black ${textPrimary} mt-1`}>
+            <h1 className={`text-lg sm:text-2xl font-black ${textPrimary} mt-1 truncate`}>
               {tenant.name}
             </h1>
-            <p className={`text-xs ${textSecondary}`}>
+            <p className={`text-xs ${textSecondary} line-clamp-2`}>
               Gestion des flux physiques & téléphoniques +221, file d'attente et relances WhatsApp
             </p>
           </div>

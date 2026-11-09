@@ -27,6 +27,7 @@ import {
 import { getThemeTokens } from '../../utils/themeTokens';
 import { useToast } from '../ui/Toast';
 import JSZip from 'jszip';
+import { ArchitectureMatrixView } from './ArchitectureMatrixView';
 
 interface LaravelFilesViewProps {
   isDark?: boolean;
@@ -35,6 +36,7 @@ interface LaravelFilesViewProps {
 export const LaravelFilesView: React.FC<LaravelFilesViewProps> = ({ isDark = true }) => {
   const { showToast } = useToast();
   const theme = getThemeTokens(isDark);
+  const [activeViewMode, setActiveViewMode] = useState<'files' | 'matrix'>('files');
   const [selectedFileIndex, setSelectedFileIndex] = useState<number>(0);
   const [selectedSpace, setSelectedSpace] = useState<'all' | 'public' | 'client' | 'admin' | 'shared'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('Tous');
@@ -175,50 +177,81 @@ export const LaravelFilesView: React.FC<LaravelFilesViewProps> = ({ isDark = tru
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fadeIn">
-      {/* Top Banner Context */}
-      <div className={`border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden transition ${
-        isDark 
-          ? 'bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/50 border-emerald-900/40 text-white' 
-          : 'bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-emerald-200 text-slate-900 shadow-md'
-      }`}>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Architecture Laravel 12 • Livewire 3 • Tailwind CSS • React 18/19</span>
-            </div>
-            <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${textPrimary}`}>
-              Fichiers Complets du Projet Laravel 12
-            </h1>
-            <p className={`text-sm sm:text-base max-w-3xl leading-relaxed ${textSecondary}`}>
-              Code source backend & frontend complet pour <strong>SunuRDV Sénégal</strong>.
-              Séparation stricte en 3 espaces distincts : <strong>Espace Public</strong> (vitrine & réservation instantanée sans compte), 
-              <strong>Espace Client / Patient</strong> (compte personnel & ticket file d'attente en temps réel), et 
-              <strong>Espace Admin Clinique & SuperAdmin</strong> (agenda temps réel avec notification Toast, gestion de caisse et multi-tenancy).
-            </p>
-          </div>
+      {/* Top View Mode Switcher: Code Explorer vs Architecture Matrix */}
+      <div className={`p-1.5 rounded-2xl border flex items-center gap-1.5 w-full sm:w-auto self-start shadow-sm transition ${subBg}`}>
+        <button
+          onClick={() => setActiveViewMode('files')}
+          className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeViewMode === 'files'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40'
+              : `${textSecondary} hover:${textPrimary}`
+          }`}
+        >
+          <FileCode className="w-4 h-4" />
+          <span>Explorateur Fichiers Laravel 12</span>
+        </button>
 
-          {/* Download Buttons */}
-          <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 shrink-0">
-            <button
-              onClick={handleDownloadFullProjectZip}
-              disabled={isDownloadingZip}
-              className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/30 transition cursor-pointer"
-            >
-              <FileArchive className="w-4 h-4" />
-              <span>{isDownloadingZip ? 'Génération de l\'archive ZIP...' : 'Télécharger Projet Complet (.zip)'}</span>
-            </button>
-
-            <button
-              onClick={handleDownloadFullProjectBundleText}
-              className={`px-5 py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition hover:scale-[1.02] cursor-pointer ${subBg} ${textPrimary}`}
-            >
-              <FileText className="w-4 h-4 text-emerald-500" />
-              <span>Télécharger Fichier Unique (.txt)</span>
-            </button>
-          </div>
-        </div>
+        <button
+          onClick={() => setActiveViewMode('matrix')}
+          className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeViewMode === 'matrix'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40'
+              : `${textSecondary} hover:${textPrimary}`
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4 text-emerald-300" />
+          <span>Matrice Séparation Routes ➔ Middlewares ➔ Contrôleurs</span>
+        </button>
       </div>
+
+      {activeViewMode === 'matrix' ? (
+        <ArchitectureMatrixView isDark={isDark} />
+      ) : (
+        <>
+          {/* Top Banner Context */}
+          <div className={`border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden transition ${
+            isDark 
+              ? 'bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/50 border-emerald-900/40 text-white' 
+              : 'bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-emerald-200 text-slate-900 shadow-md'
+          }`}>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Architecture Laravel 12 • Livewire 3 • Tailwind CSS • React 18/19</span>
+                </div>
+                <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${textPrimary}`}>
+                  Fichiers Complets du Projet Laravel 12
+                </h1>
+                <p className={`text-sm sm:text-base max-w-3xl leading-relaxed ${textSecondary}`}>
+                  Code source backend & frontend complet pour <strong>SunuRDV Sénégal</strong>.
+                  Séparation stricte en 3 espaces distincts : <strong>Espace Public</strong> (vitrine & réservation instantanée sans compte), 
+                  <strong>Espace Client / Patient</strong> (compte personnel & ticket file d'attente en temps réel), et 
+                  <strong>Espace Admin Clinique & SuperAdmin</strong> (agenda temps réel avec notification Toast, gestion de caisse et multi-tenancy).
+                </p>
+              </div>
+
+              {/* Download Buttons */}
+              <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 shrink-0">
+                <button
+                  onClick={handleDownloadFullProjectZip}
+                  disabled={isDownloadingZip}
+                  className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/30 transition cursor-pointer"
+                >
+                  <FileArchive className="w-4 h-4" />
+                  <span>{isDownloadingZip ? 'Génération de l\'archive ZIP...' : 'Télécharger Projet Complet (.zip)'}</span>
+                </button>
+
+                <button
+                  onClick={handleDownloadFullProjectBundleText}
+                  className={`px-5 py-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition hover:scale-[1.02] cursor-pointer ${subBg} ${textPrimary}`}
+                >
+                  <FileText className="w-4 h-4 text-emerald-500" />
+                  <span>Télécharger Fichier Unique (.txt)</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
       {/* Cartographie Visuelle des 3 Espaces Utilisateurs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -488,6 +521,8 @@ export const LaravelFilesView: React.FC<LaravelFilesViewProps> = ({ isDark = tru
           </div>
         </div>
       </div>
-    </div>
+    </>
+  )}
+</div>
   );
 };

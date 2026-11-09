@@ -21,14 +21,18 @@ import {
   initialAppointments, 
   senegalHolidays 
 } from './data/mockData';
-import { Tenant, Practitioner, MedicalService, Appointment, AppointmentStatus, SpaceType, ThemeMode } from './types';
+import { Tenant, Practitioner, MedicalService, Appointment, AppointmentStatus, SpaceType, ThemeMode, MotionMode } from './types';
 import { Sparkles, Code2, HeartHandshake, Shield, User, PhoneCall, Stethoscope, ShieldCheck, Layers } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<'demo' | 'dev-guide' | 'roadmap' | 'laravel-files'>('demo');
+  const [allTenants, setAllTenants] = useState<Tenant[]>(tenants);
   const [activeTenant, setActiveTenant] = useState<Tenant>(tenants[0]);
   const [currentSpace, setCurrentSpace] = useState<SpaceType>('patient');
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
+  const [motionMode, setMotionMode] = useState<MotionMode>(() => {
+    return (localStorage.getItem('sunu_motion_mode') as MotionMode) || 'fluid';
+  });
 
   // Appointments, Practitioners & Services state
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
@@ -36,6 +40,12 @@ export default function App() {
   const [services, setServices] = useState<MedicalService[]>(initialServices);
 
   const isDark = themeMode === 'dark';
+
+  // Apply motion mode data-attribute to documentElement
+  useEffect(() => {
+    document.documentElement.setAttribute('data-motion', motionMode);
+    localStorage.setItem('sunu_motion_mode', motionMode);
+  }, [motionMode]);
 
   // Apply dark mode class to document body / html
   useEffect(() => {
@@ -131,15 +141,17 @@ export default function App() {
           setCurrentTab={setCurrentTab}
           activeTenant={activeTenant}
           onSelectTenant={setActiveTenant}
-          allTenants={tenants}
+          allTenants={allTenants}
           currentSpace={currentSpace}
           setCurrentSpace={setCurrentSpace}
           themeMode={themeMode}
           setThemeMode={setThemeMode}
+          motionMode={motionMode}
+          setMotionMode={setMotionMode}
         />
 
         {/* Main Content Area */}
-        <main className={`flex-1 w-full max-w-full overflow-x-hidden ${currentTab === 'demo' ? 'pb-24 sm:pb-8' : 'pb-8'}`}>
+        <main className={`flex-1 w-full max-w-full overflow-x-hidden ${currentTab === 'demo' ? 'pb-36 sm:pb-8' : 'pb-8'}`}>
           {currentTab === 'laravel-files' && <LaravelFilesView isDark={isDark} />}
 
           {currentTab === 'dev-guide' && <Step1GuideView isDark={isDark} />}
@@ -290,8 +302,14 @@ export default function App() {
 
               {currentSpace === 'saas_superadmin' && (
                 <SuperAdminSpace
-                  tenants={tenants}
+                  tenants={allTenants}
                   isDark={isDark}
+                  onOnboardTenant={(newTenant) => {
+                    setAllTenants((prev) => [newTenant, ...prev]);
+                    setActiveTenant(newTenant);
+                  }}
+                  onSelectTenant={setActiveTenant}
+                  onSwitchToSpace={setCurrentSpace}
                 />
               )}
             </div>

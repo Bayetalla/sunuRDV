@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Tenant, SpaceType, ThemeMode } from '../types';
+import { Tenant, SpaceType, ThemeMode, MotionMode } from '../types';
 import { 
   Building2, 
   Code2, 
@@ -20,7 +20,9 @@ import {
   PhoneCall, 
   User, 
   Layers,
-  FolderTree
+  FolderTree,
+  Minimize2,
+  Zap
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -33,6 +35,8 @@ interface HeaderProps {
   setCurrentSpace: (space: SpaceType) => void;
   themeMode: ThemeMode;
   setThemeMode: (mode: ThemeMode) => void;
+  motionMode?: MotionMode;
+  setMotionMode?: (mode: MotionMode) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -45,6 +49,8 @@ export const Header: React.FC<HeaderProps> = ({
   setCurrentSpace,
   themeMode,
   setThemeMode,
+  motionMode = 'fluid',
+  setMotionMode,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -141,6 +147,44 @@ export const Header: React.FC<HeaderProps> = ({
               </>
             )}
           </button>
+
+          {/* Quick Modern Animation Mode toggle */}
+          {setMotionMode && (
+            <button
+              onClick={() => {
+                const nextMode = motionMode === 'fluid' ? 'reduced' : 'fluid';
+                setMotionMode(nextMode);
+              }}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
+                motionMode === 'fluid'
+                  ? isDark 
+                    ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/50 hover:bg-emerald-900/60 shadow-xs ring-1 ring-emerald-500/30' 
+                    : 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200 shadow-xs'
+                  : isDark
+                    ? 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
+                    : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'
+              }`}
+              title={
+                motionMode === 'fluid'
+                  ? 'Mode Animations Fluides actif (cliquer pour activer le Mode Éco / Réduit)'
+                  : 'Mode Éco / Réduit actif (cliquer pour activer les Animations Fluides)'
+              }
+            >
+              {motionMode === 'fluid' ? (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulseGlow" />
+                  <span className="hidden xs:inline">Animations Fluides</span>
+                  <span className="xs:hidden">Fluide</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden xs:inline">Mode Éco (Réduit)</span>
+                  <span className="xs:hidden">Éco</span>
+                </>
+              )}
+            </button>
+          )}
 
           <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] ${
             isDark ? 'bg-emerald-900/60 border-emerald-700/50 text-emerald-200' : 'bg-emerald-100 border-emerald-300 text-emerald-800'

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tenant } from '../../types';
+import { Tenant, SpaceType, TenantType } from '../../types';
 import { 
   ShieldAlert, 
   Layers, 
@@ -14,7 +14,13 @@ import {
   FileCode,
   RefreshCw,
   Cpu,
-  Radio
+  Radio,
+  Plus,
+  X,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  Check
 } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getThemeTokens } from '../../utils/themeTokens';
@@ -22,15 +28,72 @@ import { getThemeTokens } from '../../utils/themeTokens';
 interface SuperAdminSpaceProps {
   tenants: Tenant[];
   isDark: boolean;
+  onOnboardTenant?: (newTenant: Tenant) => void;
+  onSelectTenant?: (tenant: Tenant) => void;
+  onSwitchToSpace?: (space: SpaceType) => void;
 }
 
 export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
   tenants,
   isDark,
+  onOnboardTenant,
+  onSelectTenant,
+  onSwitchToSpace,
 }) => {
   const { showToast } = useToast();
   const theme = getThemeTokens(isDark);
   const [activeTab, setActiveTab] = useState<'tenants' | 'subscriptions' | 'infrastructure'>('tenants');
+
+  // Modal State for Onboarding new clinic
+  const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
+  const [newClinicName, setNewClinicName] = useState('');
+  const [newClinicCity, setNewClinicCity] = useState('Dakar');
+  const [newClinicPhone, setNewClinicPhone] = useState('33 824 00 12');
+  const [newClinicAddress, setNewClinicAddress] = useState('Almadies, Dakar');
+  const [newClinicType, setNewClinicType] = useState<TenantType>('medical');
+  const [newClinicLogo, setNewClinicLogo] = useState('🏥');
+  const [newClinicPlan, setNewClinicPlan] = useState<'starter' | 'pro' | 'hospital'>('pro');
+
+  const handleOnboardSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newClinicName.trim()) return;
+    const slug = newClinicName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    const newTenant: Tenant = {
+      id: `t-${Date.now()}`,
+      slug: slug || `clinique-${Date.now()}`,
+      name: newClinicName.trim(),
+      type: newClinicType,
+      tagline: 'Centre Médical & Spécialités • SunuRDV',
+      address: newClinicAddress,
+      city: newClinicCity,
+      phone: `+221 ${newClinicPhone}`,
+      email: `contact@${slug}.sn`,
+      logo: newClinicLogo,
+      accentColor: '#10b981',
+      currency: 'FCFA',
+      timezone: 'Africa/Dakar',
+      requireDeposit: true,
+      defaultDepositAmount: 5000,
+      paymentMethods: ['on_site', 'wave', 'orange_money'],
+      openingHours: {
+        days: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+        start: '08:00',
+        end: '18:00',
+        fridayPrayerStart: '13:00',
+        fridayPrayerEnd: '15:00',
+      },
+    };
+    if (onOnboardTenant) {
+      onOnboardTenant(newTenant);
+      showToast({
+        type: 'success',
+        title: 'Clinique onboardée avec succès 🇸🇳',
+        message: `${newTenant.name} (${newTenant.city}) a été créée et activée.`
+      });
+    }
+    setIsOnboardModalOpen(false);
+    setNewClinicName('');
+  };
 
   const cardBg = theme.cardBg;
   const subBg = theme.subBg;
@@ -38,24 +101,24 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
   const textSecondary = theme.textSecondary;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fadeIn">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-fadeIn pb-12 sm:pb-6">
       {/* Top Banner Context */}
-      <div className={`rounded-2xl p-6 border ${cardBg} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-2xl bg-purple-500/10 text-purple-500 border border-purple-500/30 flex items-center justify-center text-3xl shrink-0">
+      <div className={`rounded-2xl p-4 sm:p-6 border ${cardBg} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
+          <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-500 border border-purple-500/30 flex items-center justify-center text-2xl sm:text-3xl shrink-0">
             👑
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${theme.badgePurple}`}>
-                SaaS SuperAdmin Central (SunuRDV Platform)
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${theme.badgePurple}`}>
+                SuperAdmin SaaS
               </span>
-              <span className={`text-[10px] font-mono ${theme.accentGreen}`}>Master Level (Multi-tenant)</span>
+              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentGreen}`}>Master Level (Multi-tenant)</span>
             </div>
-            <h1 className={`text-xl sm:text-2xl font-black ${textPrimary} mt-1`}>
-              Supervision de l'ensemble des Établissements
+            <h1 className={`text-lg sm:text-2xl font-black ${textPrimary} mt-1 truncate`}>
+              Supervision des Établissements
             </h1>
-            <p className={`text-xs ${textSecondary}`}>
+            <p className={`text-xs ${textSecondary} line-clamp-2`}>
               Monitoring des cliniques, abonnements SaaS mensuels/annuels en FCFA, queues WhatsApp/SMS et quotas de serveurs.
             </p>
           </div>
@@ -123,16 +186,11 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <h2 className={`text-base font-bold ${textPrimary}`}>Tous les locataires multi-tenants actifs</h2>
             <button 
-              onClick={() => {
-                showToast({
-                  type: 'info',
-                  title: 'Onboarding SaaS',
-                  message: 'Formulaire de création de nouveau tenant Laravel.'
-                });
-              }}
-              className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-xs self-start sm:self-auto"
+              onClick={() => setIsOnboardModalOpen(true)}
+              className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition shadow-xs self-start sm:self-auto flex items-center gap-1.5"
             >
-              + Onboarder nouvelle clinique
+              <Plus className="w-3.5 h-3.5" />
+              <span>Onboarder nouvelle clinique</span>
             </button>
           </div>
 
@@ -157,7 +215,18 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${theme.badgeSuccess}`}>
                     ✓ À jour
                   </span>
-                  <button className={`text-xs px-2.5 py-1 rounded border transition ${subBg} ${textPrimary} hover:border-purple-500`}>
+                  <button 
+                    onClick={() => {
+                      if (onSelectTenant) onSelectTenant(t);
+                      if (onSwitchToSpace) onSwitchToSpace('clinic_admin');
+                      showToast({
+                        type: 'info',
+                        title: 'Établissement sélectionné',
+                        message: `Administration ouverte pour ${t.name}.`
+                      });
+                    }}
+                    className={`text-xs px-2.5 py-1 rounded border transition ${subBg} ${textPrimary} hover:border-purple-500 hover:bg-purple-600/10 font-semibold`}
+                  >
                     Gérer
                   </button>
                 </div>
@@ -240,6 +309,144 @@ export const SuperAdminSpace: React.FC<SuperAdminSpaceProps> = ({
             <div>php artisan queue:work --queue=whatsapp,sms,default --tries=3</div>
             <div className="text-slate-400">[2026-09-30 09:30:12] Processing: App\Jobs\SendAppointmentReminderJob</div>
             <div className="text-emerald-400">[2026-09-30 09:30:13] Processed:  App\Jobs\SendAppointmentReminderJob (124ms)</div>
+          </div>
+        </div>
+      )}
+
+      {/* Onboarding Modal for New Clinic */}
+      {isOnboardModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className={`max-w-lg w-full rounded-2xl p-6 border shadow-2xl space-y-5 animate-scaleIn ${cardBg}`}>
+            <div className="flex items-center justify-between border-b pb-3 border-slate-700/20">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">{newClinicLogo}</span>
+                <div>
+                  <h3 className={`text-base font-bold ${textPrimary}`}>Onboarder un Établissement de Santé</h3>
+                  <p className={`text-xs ${textSecondary}`}>Déploiement multi-tenant Laravel 12 avec base dédiée</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsOnboardModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                aria-label="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleOnboardSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className={`font-semibold block mb-1 ${textPrimary}`}>
+                  Nom de la Clinique / Cabinet <span className="text-rose-500">*</span> :
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Polyclinique Cheikh Anta Diop"
+                  value={newClinicName}
+                  onChange={(e) => setNewClinicName(e.target.value)}
+                  className={`w-full rounded-xl px-3.5 py-2.5 border focus:outline-none focus:ring-2 focus:ring-purple-500 transition ${theme.inputBg}`}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={`font-semibold block mb-1 ${textPrimary}`}>Ville (Sénégal) :</label>
+                  <select
+                    value={newClinicCity}
+                    onChange={(e) => setNewClinicCity(e.target.value)}
+                    className={`w-full rounded-xl px-3.5 py-2.5 border focus:outline-none transition ${theme.inputBg}`}
+                  >
+                    <option value="Dakar">Dakar</option>
+                    <option value="Thiès">Thiès</option>
+                    <option value="Saint-Louis">Saint-Louis</option>
+                    <option value="Mbour">Mbour</option>
+                    <option value="Touba">Touba</option>
+                    <option value="Ziguinchor">Ziguinchor</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`font-semibold block mb-1 ${textPrimary}`}>Téléphone direct (+221) :</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="33 824 00 12"
+                    value={newClinicPhone}
+                    onChange={(e) => setNewClinicPhone(e.target.value)}
+                    className={`w-full rounded-xl px-3.5 py-2.5 font-mono border focus:outline-none transition ${theme.inputBg}`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className={`font-semibold block mb-1 ${textPrimary}`}>Adresse géographique :</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Route des Almadies, en face Pharmacie..."
+                  value={newClinicAddress}
+                  onChange={(e) => setNewClinicAddress(e.target.value)}
+                  className={`w-full rounded-xl px-3.5 py-2.5 border focus:outline-none transition ${theme.inputBg}`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`font-semibold block mb-1 ${textPrimary}`}>Logo / Icône :</label>
+                  <div className="flex items-center gap-1.5">
+                    {['🏥', '🩺', '🦷', '🏨', '💊'].map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => setNewClinicLogo(emoji)}
+                        className={`text-lg p-1.5 rounded-lg border transition ${
+                          newClinicLogo === emoji ? 'border-purple-500 bg-purple-500/20' : 'border-slate-700/30'
+                        }`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`font-semibold block mb-1 ${textPrimary}`}>Abonnement SaaS :</label>
+                  <select
+                    value={newClinicPlan}
+                    onChange={(e) => setNewClinicPlan(e.target.value as any)}
+                    className={`w-full rounded-xl px-3 py-2 border focus:outline-none transition ${theme.inputBg}`}
+                  >
+                    <option value="starter">Starter (25 000 FCFA)</option>
+                    <option value="pro">Clinique Pro (50 000 FCFA)</option>
+                    <option value="hospital">Hôpital (120 000 FCFA)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-700/20">
+                <button
+                  type="button"
+                  onClick={() => setIsOnboardModalOpen(false)}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                    isDark ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-950/40 transition flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Créer et Activer la Clinique</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

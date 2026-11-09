@@ -323,26 +323,44 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
           </div>
 
           <div className="hidden sm:flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => 1 < step && setStep(1)}
+              className={`flex items-center gap-2 shrink-0 text-left transition ${
+                1 < step ? 'cursor-pointer hover:opacity-80' : ''
+              }`}
+            >
               <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
                 step >= 1 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
               }`}>1</span>
               <span className={step === 1 ? `font-bold ${textPrimary}` : textSecondary}>Service & Médecin</span>
-            </div>
+            </button>
             <div className={`h-0.5 w-6 md:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
-            <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => 2 < step && setStep(2)}
+              className={`flex items-center gap-2 shrink-0 text-left transition ${
+                2 < step ? 'cursor-pointer hover:opacity-80' : ''
+              }`}
+            >
               <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
                 step >= 2 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
               }`}>2</span>
               <span className={step === 2 ? `font-bold ${textPrimary}` : textSecondary}>Date & Heure</span>
-            </div>
+            </button>
             <div className={`h-0.5 w-6 md:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
-            <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => 3 < step && setStep(3)}
+              className={`flex items-center gap-2 shrink-0 text-left transition ${
+                3 < step ? 'cursor-pointer hover:opacity-80' : ''
+              }`}
+            >
               <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
                 step >= 3 ? 'bg-emerald-600 text-white shadow-sm' : isDark ? 'bg-slate-800 text-slate-500' : 'bg-slate-200 text-slate-500'
               }`}>3</span>
               <span className={step === 3 ? `font-bold ${textPrimary}` : textSecondary}>Coordonnées (+221)</span>
-            </div>
+            </button>
             <div className={`h-0.5 w-6 md:w-12 shrink-0 ${isDark ? 'bg-slate-800' : 'bg-slate-300'}`} />
             <div className="flex items-center gap-2 shrink-0">
               <span className={`h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs transition ${
@@ -492,6 +510,9 @@ export const BookingPortal: React.FC<BookingPortalProps> = ({
                       <img 
                         src={doc.avatar} 
                         alt={doc.name} 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80';
+                        }}
                         className="h-12 w-12 rounded-xl object-cover border border-slate-700 shrink-0" 
                       />
                       <div className="min-w-0">

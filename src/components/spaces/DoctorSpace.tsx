@@ -220,22 +220,25 @@ export const DoctorSpace: React.FC<DoctorSpaceProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fadeIn">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 animate-fadeIn pb-12 sm:pb-6">
       {/* Doctor Header Banner with Sub-Tab Switcher */}
-      <div className={`rounded-2xl p-5 sm:p-6 border ${cardBg} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
-        <div className="flex items-center gap-4 min-w-0">
+      <div className={`rounded-2xl p-4 sm:p-6 border ${cardBg} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full md:w-auto">
           <img 
             src={doctor.avatar} 
             alt={doctor.name} 
-            className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl object-cover border-2 border-sky-500/40 shadow-lg shrink-0" 
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80';
+            }}
+            className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl sm:rounded-2xl object-cover border-2 border-sky-500/40 shadow-lg shrink-0" 
           />
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${theme.badgeInfo}`}>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border whitespace-nowrap shrink-0 ${theme.badgeInfo}`}>
                 Espace Praticien
               </span>
-              <span className={`text-[10px] font-mono ${theme.accentGreen}`}>Salle : {doctor.room}</span>
-              <span className={`text-[10px] font-mono ${theme.accentSky}`}>{doctor.phone}</span>
+              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentGreen}`}>Salle : {doctor.room}</span>
+              <span className={`text-[10px] font-mono whitespace-nowrap ${theme.accentSky}`}>{doctor.phone}</span>
             </div>
             <h1 className={`text-lg sm:text-2xl font-black ${textPrimary} mt-1 truncate`}>
               {doctor.title} {doctor.name}
@@ -679,7 +682,14 @@ export const DoctorSpace: React.FC<DoctorSpaceProps> = ({
                                   : isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-200 border-slate-300 text-slate-700'
                               }`}
                             >
-                              <img src={prat.avatar} alt={prat.name} className="w-3.5 h-3.5 rounded-full object-cover" />
+                              <img 
+                                src={prat.avatar} 
+                                alt={prat.name} 
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80';
+                                }}
+                                className="w-3.5 h-3.5 rounded-full object-cover" 
+                              />
                               <span className="font-semibold truncate max-w-[110px]">{prat.title} {prat.name.split(' ').slice(-1)}</span>
                             </div>
                           ))}

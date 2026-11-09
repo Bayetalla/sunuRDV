@@ -370,6 +370,9 @@ export const ServiceModal: React.FC<ServiceModalProps> = ({
                       <img
                         src={prat.avatar}
                         alt={prat.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80';
+                        }}
                         className="w-8 h-8 rounded-lg object-cover border border-slate-700 shrink-0"
                       />
                       <div className="min-w-0">

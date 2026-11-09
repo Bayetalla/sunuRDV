@@ -25,7 +25,7 @@ const COMMON_SPECIALTIES = [
 ];
 
 const DEFAULT_AVATARS = [
-  'https://images.unsplash.com/photo-1594824813589-9831a3d90f84?auto=format&fit=crop&w=400&q=80',
+  'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80',
   'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80',
   'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=400&q=80',
   'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=400&q=80',

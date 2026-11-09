@@ -690,6 +690,216 @@ class IdentifyTenant
 }`
   },
 
+  {
+    path: "app/Http/Middleware/LoggingMiddleware.php",
+    category: "Routes & Middleware d'Isolation des Espaces",
+    space: "shared",
+    spaceLabel: "Journalisation & Traçabilité HTTP",
+    description: "Middleware de journalisation avancé traçant chaque requête entrante avec son UUID unique, l'ID du Tenant, le rôle utilisateur, l'adresse IP et la latence en millisecondes.",
+    language: "php",
+    code: `<?php
+
+namespace App\\Http\\Middleware;
+
+use Closure;
+use Illuminate\\Http\\Request;
+use Symfony\\Component\\HttpFoundation\\Response;
+use Illuminate\\Support\\Facades\\Log;
+use Illuminate\\Support\\Str;
+
+class LoggingMiddleware
+{
+    /**
+     * Traite la requête entrante et journalise ses métadonnées avec Tenant ID et Rôle Utilisateur.
+     * Compatible Laravel 12 & multi-tenancy SunuRDV Sénégal.
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $startTime = microtime(true);
+        $requestId = (string) Str::uuid();
+
+        // Injecter un identifiant de traçabilité unique dans les en-têtes de requête
+        $request->headers->set('X-Request-Id', $requestId);
+
+        // Passer au middleware ou contrôleur suivant
+        $response = $next($request);
+
+        // Calcul de la durée d'exécution en millisecondes
+        $durationMs = round((microtime(true) - $startTime) * 1000, 2);
+
+        // Résolution précise de l'ID du Tenant (multi-source)
+        $tenantId = null;
+        $tenantSlug = null;
+        if (app()->bound('currentTenant')) {
+            $tenant = app('currentTenant');
+            $tenantId = $tenant->id ?? null;
+            $tenantSlug = $tenant->slug ?? null;
+        } elseif ($request->attributes->has('tenant')) {
+            $tenant = $request->attributes->get('tenant');
+            $tenantId = is_object($tenant) ? ($tenant->id ?? null) : $tenant;
+        } elseif ($request->route('slug')) {
+            $tenantSlug = $request->route('slug');
+            $tenantId = $tenantSlug;
+        } elseif ($request->user() && $request->user()->tenant_id) {
+            $tenantId = $request->user()->tenant_id;
+        }
+
+        // Résolution du rôle utilisateur
+        $user = $request->user();
+        $userId = $user ? $user->id : null;
+        $userRole = 'guest';
+
+        if ($user) {
+            if ($user->is_super_admin) {
+                $userRole = 'superadmin';
+            } elseif (method_exists($user, 'getRoleNames') && $user->getRoleNames()->isNotEmpty()) {
+                $userRole = $user->getRoleNames()->first();
+            } elseif (!empty($user->role)) {
+                $userRole = $user->role;
+            } elseif (!empty($user->is_patient)) {
+                $userRole = 'patient';
+            } else {
+                $userRole = 'authenticated';
+            }
+        }
+
+        // Nettoyage des paramètres sensibles (mots de passe, tokens, OTP)
+        $cleanInputs = collect($request->except(['password', 'password_confirmation', 'otp', 'token', 'secret', 'card_number']))
+            ->map(fn($v) => is_string($v) && strlen($v) > 100 ? substr($v, 0, 100) . '...' : $v)
+            ->toArray();
+
+        // Construction du payload structuré pour les logs JSON
+        $logPayload = [
+            'request_id'   => $requestId,
+            'timestamp'    => now('Africa/Dakar')->toIso8601String(),
+            'method'       => $request->method(),
+            'url'          => $request->fullUrl(),
+            'path'         => $request->path(),
+            'ip'           => $request->ip(),
+            'tenant_id'    => $tenantId ?? 'global',
+            'tenant_slug'  => $tenantSlug,
+            'user_id'      => $userId,
+            'user_role'    => $userRole,
+            'status_code'  => $response->getStatusCode(),
+            'duration_ms'  => $durationMs,
+            'memory_mb'    => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
+            'inputs'       => $cleanInputs,
+        ];
+
+        // Formatage du message de journalisation
+        $statusCode = $response->getStatusCode();
+        $message = sprintf(
+            '[%s] %s /%s - Status: %d (%s ms) | Tenant: %s | Role: %s',
+            $requestId,
+            $request->method(),
+            ltrim($request->path(), '/'),
+            $statusCode,
+            $durationMs,
+            $tenantId ?? 'none',
+            $userRole
+        );
+
+        // Échelonnage des alertes selon le code de retour HTTP
+        if ($statusCode >= 500) {
+            Log::channel('daily')->error($message, $logPayload);
+        } elseif ($statusCode >= 400) {
+            Log::channel('daily')->warning($message, $logPayload);
+        } else {
+            Log::channel('daily')->info($message, $logPayload);
+        }
+
+        // Ajout d'en-têtes HTTP de traçabilité dans la réponse
+        $response->headers->set('X-Request-Id', $requestId);
+        $response->headers->set('X-Response-Time-Ms', (string) $durationMs);
+        $response->headers->set('X-SunuRDV-Tenant', (string) ($tenantId ?? 'none'));
+
+        return $response;
+    }
+}`
+  },
+
+  {
+    path: "bootstrap/app.php",
+    category: "Architecture & Config (Laravel 12, Livewire, React, Tailwind)",
+    space: "shared",
+    spaceLabel: "Noyau Laravel 12 & Enregistrement Middleware",
+    description: "Point d'entrée de l'application Laravel 12 configurant le routage multi-espaces, l'enregistrement global du LoggingMiddleware et les alias de sécurité.",
+    language: "php",
+    code: `<?php
+
+use Illuminate\\Foundation\\Application;
+use Illuminate\\Foundation\\Configuration\\Exceptions;
+use Illuminate\\Foundation\\Configuration\\Middleware;
+use Illuminate\\Support\\Facades\\Route;
+use App\\Http\\Middleware\\LoggingMiddleware;
+use App\\Http\\Middleware\\IdentifyTenant;
+use App\\Http\\Middleware\\EnsureUserRole;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+        then: function () {
+            // 1. Espace Public : Vitrine & Réservation instantanée
+            Route::middleware(['web', 'identify.tenant'])
+                ->group(base_path('routes/public.php'));
+
+            // 2. Espace Client : Dossier & Ticket patient
+            Route::middleware(['web', 'identify.tenant', 'auth', 'role:client'])
+                ->prefix('client')
+                ->name('client.')
+                ->group(base_path('routes/client.php'));
+
+            // 3. Espace Réceptionniste : Guichet d'accueil +221
+            Route::middleware(['web', 'identify.tenant', 'auth', 'role:receptionist,admin'])
+                ->prefix('reception')
+                ->name('reception.')
+                ->group(base_path('routes/reception.php'));
+
+            // 4. Espace Praticien : Consultation & Ordonnances
+            Route::middleware(['web', 'identify.tenant', 'auth', 'role:doctor'])
+                ->prefix('medecin')
+                ->name('doctor.')
+                ->group(base_path('routes/doctor.php'));
+
+            // 5. Espace Admin Clinique : Paramètres, Caisse & Praticiens
+            Route::middleware(['web', 'identify.tenant', 'auth', 'role:clinic_admin'])
+                ->prefix('admin')
+                ->name('admin.')
+                ->group(base_path('routes/admin.php'));
+
+            // 6. Espace SuperAdmin Plateforme : Multi-Cliniques SaaS (sans tenant context)
+            Route::middleware(['web', 'auth', 'role:superadmin'])
+                ->prefix('superadmin')
+                ->name('superadmin.')
+                ->group(base_path('routes/superadmin.php'));
+        }
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        // Enregistrement global du LoggingMiddleware :
+        // Trace automatiquement chaque requête avec Tenant ID et Rôle Utilisateur
+        $middleware->append(LoggingMiddleware::class);
+
+        // Alias de middlewares pour les routes déclarées
+        $middleware->alias([
+            'identify.tenant' => IdentifyTenant::class,
+            'role'            => EnsureUserRole::class,
+            'trace.logger'    => LoggingMiddleware::class,
+        ]);
+
+        // Exemption CSRF pour les webhooks Wave et Orange Money Sénégal
+        $middleware->validateCsrfTokens(except: [
+            'api/webhooks/wave',
+            'api/webhooks/orange-money',
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();`
+  },
+
   // =========================================================================
   // ESPACE PUBLIC : LIVEWIRE 3 + REACT ISLAND (PRISE DE RDV EN LIGNE)
   // =========================================================================

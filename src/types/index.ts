@@ -5,6 +5,7 @@ export type UserRole = 'patient' | 'receptionist' | 'doctor' | 'admin' | 'supera
 export type SpaceType = 'patient' | 'reception' | 'doctor' | 'clinic_admin' | 'saas_superadmin';
 
 export type ThemeMode = 'dark' | 'light';
+export type MotionMode = 'fluid' | 'reduced';
 
 export interface UserAccount {
   id: string;

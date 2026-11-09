@@ -89,7 +89,7 @@ export const practitioners: Practitioner[] = [
     name: 'Dr. Fatou Ndiaye',
     title: 'Docteur',
     specialty: 'Médecine Générale & Diabétologie',
-    avatar: 'https://images.unsplash.com/photo-1594824813589-9831a3d90f84?auto=format&fit=crop&w=400&q=80',
+    avatar: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?auto=format&fit=crop&w=400&q=80',
     phone: '+221 77 645 12 90',
     email: 'f.ndiaye@keurmadior.sn',
     room: 'Bureau 102 - 1er étage',
